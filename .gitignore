@@ -1,0 +1,19 @@
+# Dependencies
+/node_modules
+
+# Environment variables
+.env
+
+# Build files
+/client/build
+
+# Log files
+*.log
+
+# IDE-specific files (optional)
+.vscode/
+.idea/
+
+# Other build artifacts (optional)
+.DS_Store
+Thumbs.db
