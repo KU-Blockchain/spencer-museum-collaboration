@@ -17,3 +17,8 @@
 # Other build artifacts (optional)
 .DS_Store
 Thumbs.db
+
+server/artifacts/
+server/cache/
+server/hardhat.config.js
+server/node_modules/
