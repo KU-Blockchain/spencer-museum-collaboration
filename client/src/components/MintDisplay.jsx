@@ -14,15 +14,15 @@ function MintDisplay() {
           <div style={{
             display:"inline-block"
           }}>
-          <div><input type={Text} className="email-box"></input></div>
+          <div><input type="text" className="email-box"></input></div>
   
-          <div><input type={Text} className="email-box"></input></div>
+          <div><input type="text" className="email-box"></input></div>
   
-          <div><input type={Text} className="email-box"></input></div>
+          <div><input type="text" className="email-box"></input></div>
   
-          <div><input type={Text} className="email-box"></input></div>
+          <div><input type="text" className="email-box"></input></div>
   
-          <div><input type={Text} className="email-box"></input></div>
+          <div><input type="text" className="email-box"></input></div>
   
           </div>
           <div>
