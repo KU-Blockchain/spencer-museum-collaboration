@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
-function MintDisplay() {
+
+const MintDisplay = ({styles}) => {
   /*
   Here, we're importing the GenerateWallets ABI from the GenerateWallets.json file, 
   initializing a new ethers.Contract instance with the contractAddress, 
@@ -10,7 +11,7 @@ function MintDisplay() {
   Note that the provider object represents the Ethereum network 
   that you're connecting to, and can be changed to point to a different network if necessary.
   */
-
+/*
   const generateWalletsABI = require("../ABI/GenerateWallets.json");
   const provider = new ethers.providers.JsonRpcProvider(
     "http://localhost:8545"
@@ -22,54 +23,12 @@ function MintDisplay() {
     generateWalletsABI.abi,
     provider
   );
-
+*/
   return (
     <>
-      <div style={{ textAlign: "center" }}>Email Thing</div>
-
-      <div
-        style={{
-          display: "flex",
-          columnGap: "400px",
-          marginLeft: "20%",
-        }}
-      >
-        <div
-          style={{
-            display: "inline-block",
-          }}
-        >
-          <div>
-            <input type="text" className="email-box"></input>
-          </div>
-
-          <div>
-            <input type="text" className="email-box"></input>
-          </div>
-
-          <div>
-            <input type="text" className="email-box"></input>
-          </div>
-
-          <div>
-            <input type="text" className="email-box"></input>
-          </div>
-
-          <div>
-            <input type="text" className="email-box"></input>
-          </div>
-        </div>
-        <div>
-          <div
-            style={{
-              display: "inline-block",
-              justifyContent: "center",
-              paddingTop: "60px",
-            }}
-          >
-            <button className="Mint-Button">Mint</button>
-          </div>
-        </div>
+      <div style={styles.section}>
+        <h2 style={styles.title}>Assign</h2>
+        <button style={styles.button}>Mint</button>
       </div>
     </>
   );
