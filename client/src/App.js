@@ -1,23 +1,28 @@
 import React from 'react';
-import ParticipantCircleDisplay from './components/ParticipantCircleDisplay';
 import MintDisplay from './components/MintDisplay';
 import ClaimDisplay from './components/ClaimDisplay';
 import MovingCircles from './components/MovingCircles';
+import DataLogSidebar from './components/DataLogSidebar';
 
 const App = () => {
   return (
     <div style={appStyles.container}>
-   
       <header style={appStyles.header}>From the University of Kansas Blockchain Institute in collaboration with the Spencer Museum of Art</header>
-      
-      <div style={{...appStyles.section,  marginBottom: '10px', borderBottom: '1px solid black'}}>
-        <MovingCircles styles={appStyles} />
-      </div>
-      <div style={{...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black'}}>
-        <MintDisplay styles={appStyles}/>
-      </div>
-      <div style={{...appStyles.section, borderBottom: 'none'}}>
-        <ClaimDisplay styles={appStyles}/>
+      <div style={appStyles.contentContainer}>
+        <div style={{ ...appStyles.section, width: '75%' }}>
+          <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
+            <MovingCircles styles={appStyles} />
+          </div>
+          <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
+            <MintDisplay styles={appStyles} />
+          </div>
+          <div style={{ ...appStyles.section, borderBottom: 'none', width: '100%' }}>
+            <ClaimDisplay styles={appStyles} />
+          </div>
+        </div>
+        <div style={{ ...appStyles.sidebar, height: '100vh', border: '1px solid black' }}>
+          <DataLogSidebar styles={appStyles} />
+        </div>
       </div>
     </div>
   );
@@ -39,14 +44,19 @@ const appStyles = {
     alignItems: 'center',
     fontWeight: 'bold',
     outline: '1px solid #000000',
-    
+  },
+  contentContainer: {
+    display: 'flex',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   section: {
-    width: '100%',
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    width: '100%',
   },
   circleContainer: {
     display: 'flex',
@@ -79,6 +89,12 @@ const appStyles = {
     fontWeight: 'bold',
     outline: '2px solid #000000',
   },
+  sidebar: {
+    position: 'relative',
+    width: '25%',
+    backgroundColor: '#e6f9ff',
+    padding: '20px',
+  }
 };
 
 export default App;
