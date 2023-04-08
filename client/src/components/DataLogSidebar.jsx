@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 
 const DataLogSidebar = ({ styles }) => {
-  const [text, setText] = useState("Sidebar filler text"); // initial text state
+  const [text, setText] = useState("Sidebar filler text Sidebar filler textSidebar filler textSidebar filler textSidebar filler text"); // initial text state
   // function to update text based on data from backend
   const updateText = (data) => {
     setText(data);
   };
 
   return (
-    <div style={{...styles.sidebar, width: '100%'}}>
+    <div style={{ width: '100%'}}>
       <p>{text}</p>
     </div>
   );

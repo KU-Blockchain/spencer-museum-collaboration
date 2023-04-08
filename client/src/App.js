@@ -1,5 +1,4 @@
 import React from 'react';
-import ParticipantCircleDisplay from './components/ParticipantCircleDisplay';
 import MintDisplay from './components/MintDisplay';
 import ClaimDisplay from './components/ClaimDisplay';
 import MovingCircles from './components/MovingCircles';
