@@ -3,6 +3,7 @@ import MintDisplay from './components/MintDisplay';
 import ClaimDisplay from './components/ClaimDisplay';
 import MovingCircles from './components/MovingCircles';
 import DataLogSidebar from './components/DataLogSidebar';
+import ClaimNFTComponent from './components/ClaimNFTComponent';
 
 const App = () => {
   return (
@@ -12,6 +13,9 @@ const App = () => {
         <div style={{ ...appStyles.section, width: '75%' }}>
           <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
             <MovingCircles styles={appStyles} />
+          </div>
+          <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
+            <ClaimNFTComponent />
           </div>
           <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
             <MintDisplay styles={appStyles} />
