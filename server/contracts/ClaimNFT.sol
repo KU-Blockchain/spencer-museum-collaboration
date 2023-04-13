@@ -44,6 +44,23 @@ contract ClaimNFT is ERC721URIStorage, Ownable {
         _burn(tokenId);
         _addressHasNFT[msg.sender] = false;
     }
+
+    // Function to burn all NFTs and reset the total number of instances of this contract to 0
+    function BurnReset() public onlyOwner {
+        for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {
+            if (_exists(tokenId)) {
+                address tokenOwner = ownerOf(tokenId);
+                _burn(tokenId);
+                _addressHasNFT[tokenOwner] = false;
+            }
+        }
+        _tokenIds.reset();
+    }
+
+    // Function to get the total number of instances of this contract/NFT
+    function totalSupply() public view returns (uint256) {
+        return _tokenIds.current();
+    }
 }
 
 /*
