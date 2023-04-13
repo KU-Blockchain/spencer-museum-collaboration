@@ -7,6 +7,8 @@ const ClaimNFTComponent = () => {
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
+  const [pending, setPending] = useState(false); // New state for tracking pending status
+
 
   useEffect(() => {
     const connectMetamask = async () => {
@@ -32,12 +34,33 @@ const ClaimNFTComponent = () => {
     connectMetamask();
   }, []);
 
+  //updates the total supply without having to refresh the page
+  useEffect(() => {
+    if (contract) {
+      getTotalSupply(contract);
+    }
+  }, [contract]);
+
   const getTotalSupply = async (contractInstance) => {
     try {
       const supply = await contractInstance.methods.totalSupply().call();
       setTotalSupply(supply);
     } catch (error) {
       console.error('Error fetching total supply:', error);
+    }
+  };
+
+  const sendTransaction = async (transaction) => {
+    setPending(true);
+    try {
+      const result = await transaction.send({ from: account });
+      console.log('Transaction successful:', result);
+      setPending(false);
+      return result;
+    } catch (error) {
+      console.error('Transaction failed:', error.message);
+      setPending(false);
+      throw error;
     }
   };
 
@@ -50,14 +73,13 @@ const ClaimNFTComponent = () => {
 
     try {
       // Burn all NFTs
-      const result = await contract.methods.BurnReset().send({ from: account });
-
-      console.log('Transaction successful:', result);
+      await sendTransaction(contract.methods.BurnReset());
+      console.log('All NFTs have been burned.');
 
       // Update the total supply
       getTotalSupply(contract);
     } catch (error) {
-      console.error('Transaction failed:', error.message);
+      console.error('Error details:', error);
     }
   };
 
@@ -94,21 +116,20 @@ const ClaimNFTComponent = () => {
       console.log('Contract not found. Check MetaMask connection.');
       return;
     }
-  
+
     if (await hasClaimNFT()) {
       console.log('User already has a ClaimNFT. Cannot mint another one.');
       return;
     }
-  
+
     try {
       // Mint the NFT
-      const result = await contract.methods.mintClaimNFT(account, 'Spencer Museum').send({ from: account });
-  
-      console.log('Transaction successful:', result);
+      await sendTransaction(contract.methods.mintClaimNFT(account, 'Spencer Museum'));
     } catch (error) {
       console.error('Transaction failed:', error.message);
     }
   };
+
 
   return (
     <div>
@@ -116,6 +137,7 @@ const ClaimNFTComponent = () => {
       <button onClick={claimLand}>Claim</button>
       <button onClick={burnAll}>Burn All</button>
       <p>Total Supply: {totalSupply}</p>
+      {pending && <p>Pending...</p>} {/* Show "pending..." text based on the pending state */}
     </div>
   );
 };
