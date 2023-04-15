@@ -3,9 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ClaimNFT is ERC721URIStorage, Ownable {
+contract ClaimNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -15,10 +14,10 @@ contract ClaimNFT is ERC721URIStorage, Ownable {
     // Event to be emitted when land is claimed
     event LandClaimed(address indexed claimer, uint256 indexed tokenId);
 
-    constructor() ERC721("ClaimNFT", "CLNFT") {}
+    constructor() ERC721("ClaimNFT", "CLNFT") {
+    }
 
-    // Function to mint a new ClaimNFT with a ClaimableLand property
-    function mintClaimNFT(address to, string memory tokenURI) public onlyOwner {
+    function mintClaimNFT(address to, string memory tokenURI) public returns (bool) {
         require(!_addressHasNFT[to], "This address already has a ClaimNFT.");
 
         _tokenIds.increment();
@@ -28,6 +27,7 @@ contract ClaimNFT is ERC721URIStorage, Ownable {
         _setTokenURI(newTokenId, tokenURI);
 
         _addressHasNFT[to] = true;
+        return true;
     }
 
     // Function to get the details (ClaimableLand) of a specific token
@@ -38,7 +38,7 @@ contract ClaimNFT is ERC721URIStorage, Ownable {
     // Function to claim land and burn the NFT
     function claimLand(uint256 tokenId) public {
         require(ownerOf(tokenId) == msg.sender, "Only the owner can claim the land.");
-        
+
         emit LandClaimed(msg.sender, tokenId);
 
         _burn(tokenId);
@@ -46,7 +46,7 @@ contract ClaimNFT is ERC721URIStorage, Ownable {
     }
 
     // Function to burn all NFTs and reset the total number of instances of this contract to 0
-    function BurnReset() public onlyOwner {
+    function BurnReset() public {
         for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {
             if (_exists(tokenId)) {
                 address tokenOwner = ownerOf(tokenId);
@@ -62,17 +62,3 @@ contract ClaimNFT is ERC721URIStorage, Ownable {
         return _tokenIds.current();
     }
 }
-
-/*
-Contract description: 
-
-Importing necessary OpenZeppelin contracts: ERC721URIStorage, Counters, and Ownable.
-The contract ClaimNFT inherits from ERC721URIStorage and Ownable.
-The _tokenIds counter is used to keep track of token IDs.
-The _addressHasNFT mapping is used to track if an address already has an NFT.
-The LandClaimed event is emitted when land is claimed.
-The constructor sets the name and symbol for the ERC721 token.
-The mintClaimNFT function mints a new ClaimNFT with a ClaimableLand property. It can only be called by the contract owner and checks if the recipient address already has an NFT.
-The getDetails function returns the details (ClaimableLand) of a specific token.
-The claimLand function allows the NFT owner to claim land and burns the NFT. It also emits the LandClaimed event.
-*/
