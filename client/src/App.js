@@ -1,9 +1,8 @@
 import React from 'react';
-import MintDisplay from './components/MintDisplay';
 import ClaimDisplay from './components/ClaimDisplay';
 import MovingCircles from './components/MovingCircles';
 import DataLogSidebar from './components/DataLogSidebar';
-import ClaimNFTComponent from './components/ClaimNFTComponent';
+import GenerateComponent from './components/GenerateComponent';
 
 const App = () => {
   return (
@@ -15,10 +14,7 @@ const App = () => {
             <MovingCircles styles={appStyles} />
           </div>
           <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
-            <ClaimNFTComponent />
-          </div>
-          <div style={{ ...appStyles.section, marginBottom: '10px', borderBottom: '1px solid black', width: '100%' }}>
-            <MintDisplay styles={appStyles} />
+            <GenerateComponent styles={appStyles} />
           </div>
           <div style={{ ...appStyles.section, borderBottom: 'none', width: '100%' }}>
             <ClaimDisplay styles={appStyles} />
