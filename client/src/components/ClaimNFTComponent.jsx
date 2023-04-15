@@ -87,6 +87,7 @@ const ClaimNFTComponent = () => {
       for (const wallet of wallets) {
         const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
         await sendTransaction(contract.methods.mintClaimNFT(wallet.address, tokenURI));
+        console.log("Minted NFT");
       }
       console.log('NFTs minted successfully');
     } catch (error) {
