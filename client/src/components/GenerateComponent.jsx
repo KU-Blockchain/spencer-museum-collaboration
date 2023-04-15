@@ -11,7 +11,7 @@ const GenerateComponent = ({ styles }) => {
   const [totalSupply, setTotalSupply] = useState(0);
   const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
-  const [numWallets, setNumWallets] = useState(1);
+  const [numWallets, setNumWallets] = useState(3);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
 
   // Add your EmailJS credentials here
@@ -215,33 +215,40 @@ const GenerateComponent = ({ styles }) => {
 
   return (
     <div>
-      {/* Add email input fields */}
-      {Array.from({ length: numWallets }).map((_, index) => (
-        <input
-          key={index}
-          type="email"
-          value={emailInputs[index]}
-          onChange={(e) => handleEmailInputChange(index, e.target.value)}
-          placeholder={`Email Address ${index + 1}`}
-        />
-      ))}
-
-      <button
-        style={styles.button}
-        onClick={generateWalletsAndSendEmails}
-        disabled={!allEmailsValid()} // Disable button if not all emails are valid
-      >
-        Generate Wallets
-      </button>
-      <button style={styles.button} onClick={mintNFTs}>
-        Mint NFTs
-      </button>
-      <button style={styles.button} onClick={burnAll}>
-        Burn All
-      </button>
-      <div>Total Supply: {totalSupply}</div>
+      <h3>Enter emails: </h3>
+      <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* Add email input fields */}
+          {Array.from({ length: numWallets }).map((_, index) => (
+            <input
+              key={index}
+              type="email"
+              value={emailInputs[index]}
+              onChange={(e) => handleEmailInputChange(index, e.target.value)}
+              placeholder={`Email Address ${index + 1}`}
+            />
+          ))}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginLeft: '2rem',
+          }}
+        >
+          <button
+            style={styles.button}
+            onClick={generateWalletsAndSendEmails}
+            disabled={!allEmailsValid()} // Disable button if not all emails are valid
+          >
+            Generate Wallets
+          </button>
+        </div>
+      </div>
       <div>
-        <h2>Wallets</h2>
+        <h3>Wallets: </h3>
         {wallets.map((wallet, i) => (
           <div key={i}>
             <p>PrivateKey: {wallet.privateKey}</p>
@@ -250,8 +257,18 @@ const GenerateComponent = ({ styles }) => {
           </div>
         ))}
       </div>
+      <div style={{ display: 'flex',  width: '50%'}}>
+        <button style={styles.button} onClick={mintNFTs}>
+          Mint NFTs
+        </button>
+        <button style={styles.button} onClick={burnAll}>
+          Burn All
+        </button>
+      </div>
+      <div>Total Supply: {totalSupply}</div>
     </div>
   );
+  
 };
 
 export default GenerateComponent;
