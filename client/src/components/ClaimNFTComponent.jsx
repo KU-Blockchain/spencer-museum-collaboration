@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
+import GenerateWalletsABI from '../ABI/GenerateWallets.json';
 import ClaimNFTABI from '../ABI/ClaimNFT.json';
+import ClaimNFTManagerABI from '../ABI/ClaimNFTManager.json';
+import { ethers } from 'ethers';
 
 const ClaimNFTComponent = () => {
   const [web3, setWeb3] = useState(null);
@@ -8,6 +11,12 @@ const ClaimNFTComponent = () => {
   const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
   const [pending, setPending] = useState(false); // New state for tracking pending status
+  // New state variables for GenerateWallets and ClaimNFTManager contracts
+  const [generateWalletsContract, setGenerateWalletsContract] = useState(null);
+  const [claimNFTManagerContract, setClaimNFTManagerContract] = useState(null);
+   // New state variable for storing wallet information
+   const [wallets, setWallets] = useState([]);
+   const [numWallets, setNumWallets] = useState(5);
 
 
   useEffect(() => {
@@ -25,7 +34,7 @@ const ClaimNFTComponent = () => {
       setAccount(accounts[0]);
 
       // Set up the contract
-      const contractInstance = new web3Instance.eth.Contract(ClaimNFTABI.abi, '0x18882075d782cc9e571a47a3e9846dad97fe51d3');
+      const contractInstance = new web3Instance.eth.Contract(ClaimNFTABI.abi, '0xd6f725ea2625ac557d2704054b2a4c6cd1fb99b6');
       setContract(contractInstance);
 
       // Fetch total supply of NFTs
@@ -34,12 +43,56 @@ const ClaimNFTComponent = () => {
     connectMetamask();
   }, []);
 
+  useEffect(() => {
+    if (web3) {
+      // Set up the GenerateWallets and ClaimNFTManager contracts
+      const generateWalletsContractInstance = new web3.eth.Contract(GenerateWalletsABI.abi, '0xe3f268b0fc5a5deaf76c06c815e0a70b061e013d');
+      setGenerateWalletsContract(generateWalletsContractInstance);
+
+      const claimNFTManagerContractInstance = new web3.eth.Contract(ClaimNFTManagerABI.abi, '0x217f929dae78a489f9a0642943b0ff637dce0dbd');
+      setClaimNFTManagerContract(claimNFTManagerContractInstance);
+    }
+  }, [web3]);
+
   //updates the total supply without having to refresh the page
   useEffect(() => {
     if (contract) {
       getTotalSupply(contract);
     }
   }, [contract]);
+
+  // New function to generate a variable number of Ethereum wallets
+  const generateWallets = async () => {
+    const wallets = [];
+
+    for (let i = 0; i < numWallets; i++) {
+      const wallet = ethers.Wallet.createRandom();
+      wallets.push({
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+        address: wallet.address,
+      });
+    }
+
+    setWallets(wallets);
+  };
+  // New function to mint NFTs into the generated paper wallets
+  const mintNFTs = async () => {
+    if (!contract || wallets.length === 0) {
+      console.log('Contract not found or no wallets available. Check MetaMask connection or generate wallets first.');
+      return;
+    }
+
+    try {
+      for (const wallet of wallets) {
+        const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
+        await sendTransaction(contract.methods.mintClaimNFT(wallet.address, tokenURI));
+      }
+      console.log('NFTs minted successfully');
+    } catch (error) {
+      console.error('Transaction failed:', error.message);
+    }
+  };
 
   const getTotalSupply = async (contractInstance) => {
     try {
@@ -111,35 +164,64 @@ const ClaimNFTComponent = () => {
     }
   };
   
-  const mintNFT = async () => {
-    if (!contract) {
-      console.log('Contract not found. Check MetaMask connection.');
-      return;
-    }
 
-    if (await hasClaimNFT()) {
-      console.log('User already has a ClaimNFT. Cannot mint another one.');
-      return;
-    }
+// New function to generate wallets, mint NFTs, and send wallet information via email
+const generateAndMint = async () => {
+  const numWallets = 5;
 
-    try {
-      // Mint the NFT
-      await sendTransaction(contract.methods.mintClaimNFT(account, 'Spencer Museum'));
-    } catch (error) {
-      console.error('Transaction failed:', error.message);
-    }
-  };
+  if (!claimNFTManagerContract || !generateWalletsContract) {
+    console.log('Contracts not found. Check MetaMask connection.');
+    return;
+  }
+  console.log("point 1");
 
+  try {
+    // Generate wallets and mint NFTs
+    console.log("point 2");
+    await sendTransaction(claimNFTManagerContract.methods.generateAndMint(numWallets));
+    console.log("point 3");
+    // Get the wallets
+    const walletData = await generateWalletsContract.methods.getWallets().call({ from: account });
+    const privateKeys = walletData[0];
+    const publicKeys = walletData[1];
 
-  return (
+    // Update the wallets state
+    setWallets(
+      privateKeys.map((privateKey, i) => ({
+        privateKey: privateKey,
+        publicKey: publicKeys[i],
+      }))
+    );
+    console.log("wallets: ", wallets);
+    // Send wallet information via email and print them to the screen
+    wallets.forEach((wallet) => {
+      // Use your email sending logic here
+      console.log(`Send email to: dummy@example.com\nPrivateKey: ${wallet.privateKey}\nPublicKey: ${wallet.publicKey}`);
+    });
+  } catch (error) {
+    console.error('Transaction failed:', error.message);
+  }
+};
+
+return (
+  <div>
+    <button onClick={generateWallets}>Generate Wallets</button>
+    <button onClick={mintNFTs}>Mint NFTs</button>
+    <button onClick={burnAll}>Burn All</button>
+          <div>Total Supply: {totalSupply}</div>
     <div>
-      <button onClick={mintNFT}>Mint</button>
-      <button onClick={claimLand}>Claim</button>
-      <button onClick={burnAll}>Burn All</button>
-      <p>Total Supply: {totalSupply}</p>
-      {pending && <p>Pending...</p>} {/* Show "pending..." text based on the pending state */}
+      <h2>Wallets</h2>
+      {wallets.map((wallet, i) => (
+        <div key={i}>
+          <p>PrivateKey: {wallet.privateKey}</p>
+          <p>PublicKey: {wallet.publicKey}</p>
+          <p>Address: {wallet.address}</p>
+        </div>
+      ))}
     </div>
-  );
+  </div>
+);
 };
 
 export default ClaimNFTComponent;
+
