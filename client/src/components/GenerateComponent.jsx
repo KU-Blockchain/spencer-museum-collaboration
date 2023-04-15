@@ -217,7 +217,7 @@ const GenerateComponent = ({ styles }) => {
     <div>
       <h3>Enter emails: </h3>
       <div style={{ display: 'flex', flexDirection: 'row' }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', flexDirection: 'column'}}>
           {/* Add email input fields */}
           {Array.from({ length: numWallets }).map((_, index) => (
             <input
