@@ -12,7 +12,11 @@ contract GenerateWallets {
     using ECDSA for bytes32;
     using Strings for uint256;
 
-    event WalletGenerated(address indexed owner, bytes32 indexed privateKey, address indexed publicKey);
+    event WalletGenerated(
+        address indexed owner,
+        bytes32 indexed privateKey,
+        address indexed publicKey
+    );
 
     struct Wallet {
         bytes32 privateKey;
@@ -23,19 +27,25 @@ contract GenerateWallets {
 
     function generateWallets(uint256 numWallets) public {
         for (uint256 i = 0; i < numWallets; i++) {
-            bytes32 privateKey = keccak256(abi.encodePacked(msg.sender, i, block.number, block.timestamp));
+            bytes32 privateKey = keccak256(
+                abi.encodePacked(msg.sender, i, block.number, block.timestamp)
+            );
+
             address publicKey = address(uint160(uint256(privateKey)));
 
-            wallets[msg.sender].push(Wallet({
-                privateKey: privateKey,
-                publicKey: publicKey
-            }));
+            wallets[msg.sender].push(
+                Wallet({privateKey: privateKey, publicKey: publicKey})
+            );
 
             emit WalletGenerated(msg.sender, privateKey, publicKey);
         }
     }
 
-    function getWallets() public view returns (bytes32[] memory, address[] memory) {
+    function getWallets()
+        public
+        view
+        returns (bytes32[] memory, address[] memory)
+    {
         uint256 numWallets = wallets[msg.sender].length;
         bytes32[] memory privateKeys = new bytes32[](numWallets);
         address[] memory publicKeys = new address[](numWallets);
@@ -48,22 +58,5 @@ contract GenerateWallets {
         }
 
         return (privateKeys, publicKeys);
-    }
-
-    function sendEmail(string memory to, string memory privateKey, string memory publicKey) public {
-        // Implement your email sending logic here
-    }
-    
-    function generatePaperWallets(uint256 numWallets) public {
-        generateWallets(numWallets);
-        
-        (bytes32[] memory privateKeys, address[] memory publicKeys) = getWallets();
-        
-        for (uint256 i = 0; i < numWallets; i++) {
-            string memory privateKey = Strings.toHexString(uint256(privateKeys[i]), 32);
-            string memory publicKey = Strings.toHexString(uint256(uint160(publicKeys[i])), 20);
-            
-            sendEmail("example@example.com", privateKey, publicKey);
-        }
     }
 }
