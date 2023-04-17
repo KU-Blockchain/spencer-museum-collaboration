@@ -1,5 +1,5 @@
 import React from "react";
-import ClaimDisplay from "./components/ClaimDisplay";
+import ClaimComponent from "./components/NewClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./components/GenerateComponent";
@@ -40,7 +40,7 @@ const App = () => {
               />
               <Route
                 path="/claim"
-                element={<ClaimDisplay styles={appStyles} />}
+                element={<ClaimComponent styles={appStyles} />}
               />
             </Routes>
           </div>

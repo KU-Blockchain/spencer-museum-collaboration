@@ -11,7 +11,7 @@ const GenerateComponent = ({ styles }) => {
   const [totalSupply, setTotalSupply] = useState(0);
   const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
-  const [numWallets, setNumWallets] = useState(3);
+  const [numWallets, setNumWallets] = useState(1);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
 
   // Add your EmailJS credentials here
@@ -55,6 +55,16 @@ const GenerateComponent = ({ styles }) => {
     }
   }, [contract]);
 
+  useEffect(() => {
+    if (wallets.length > 0) {
+      (async () => {
+        await sendEmails();
+        console.log("Emails sent successfully");
+      })();
+    }
+  }, [wallets]);
+  
+
   // New function to update email inputs
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
@@ -69,16 +79,18 @@ const GenerateComponent = ({ styles }) => {
   };
 
   // New function to send emails
-  const sendEmails = () => {
-    wallets.forEach((wallet, index) => {
+  const sendEmails = async () => {
+    console.log("wallets length in send emails: " + wallets.length);
+    
+    const emailPromises = wallets.map((wallet, index) => {
       const emailData = {
         privateKey: wallet.privateKey,
         publicKey: wallet.publicKey,
         address: wallet.address,
         to_email: emailInputs[index],
       };
-
-      emailjs
+  
+      return emailjs
         .send(emailjsServiceId, emailjsTemplateId, emailData, emailjsUserId)
         .then(
           (response) => {
@@ -93,29 +105,38 @@ const GenerateComponent = ({ styles }) => {
           }
         );
     });
+  
+    await Promise.all(emailPromises);
   };
+  
 
   const generateWalletsAndSendEmails = async () => {
     await generateWallets();
     console.log("Wallets generated successfully");
-    sendEmails();
   };
+  
+  
 
   // New function to generate a variable number of Ethereum wallets
-  const generateWallets = async () => {
-    const wallets = [];
+  // New function to generate a variable number of Ethereum wallets
+const generateWallets = async () => {
+  const wallets = [];
 
-    for (let i = 0; i < numWallets; i++) {
-      const wallet = ethers.Wallet.createRandom();
-      wallets.push({
-        privateKey: wallet.privateKey,
-        publicKey: wallet.publicKey,
-        address: wallet.address,
-      });
-    }
+  for (let i = 0; i < numWallets; i++) {
+    const wallet = ethers.Wallet.createRandom();
+    wallets.push({
+      privateKey: wallet.privateKey,
+      publicKey: wallet.publicKey,
+      address: wallet.address,
+    });
+  }
 
-    setWallets(wallets);
-  };
+  setWallets(wallets);
+  console.log("Wallets generated successfully");
+};
+
+  
+  
   // New function to mint NFTs into the generated paper wallets
   const mintNFTs = async () => {
     if (!contract || wallets.length === 0) {
@@ -126,12 +147,13 @@ const GenerateComponent = ({ styles }) => {
     }
 
     try {
+      console.log("wallets length: " + wallets.length);
       for (const wallet of wallets) {
         const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
         await sendTransaction(
           contract.methods.mintClaimNFT(wallet.address, tokenURI)
         );
-        console.log("Minted NFT");
+        console.log("Minted NFT to ," + wallet.address);
       }
       console.log("NFTs minted successfully");
     } catch (error) {
