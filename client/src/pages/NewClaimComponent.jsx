@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Web3 from "web3";
 import claimNFTABI from "../ABI/ClaimNFT.json"; // Import the ABI from a JSON file
 
-const ClaimComponent = ({ styles }) => {
+const ClaimComponent = ({ styles, logMessage }) => {
   const [provider, setProvider] = useState(null);
   const [userAddress, setUserAddress] = useState("");
   const [publicKey, setPublicKey] = useState("");

@@ -4,7 +4,8 @@ import ClaimNFTABI from "../ABI/ClaimNFT.json";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
 
-const GenerateComponent = ({ styles }) => {
+
+const GenerateComponent = ({ styles, logMessage }) => {
   const [web3, setWeb3] = useState(null);
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
@@ -24,6 +25,7 @@ const GenerateComponent = ({ styles }) => {
       // Check if MetaMask is installed
       if (!window.ethereum) {
         console.log("MetaMask is not installed.");
+    
         return;
       }
 
@@ -60,6 +62,7 @@ const GenerateComponent = ({ styles }) => {
       (async () => {
         await sendEmails();
         console.log("Emails sent successfully");
+        logMessage("Emails sent successfully");
       })();
     }
   }, [wallets]);
@@ -113,6 +116,7 @@ const GenerateComponent = ({ styles }) => {
   const generateWalletsAndSendEmails = async () => {
     await generateWallets();
     console.log("Wallets generated successfully");
+    logMessage("Wallets generated successfully");
   };
   
   
@@ -154,6 +158,7 @@ const generateWallets = async () => {
           contract.methods.mintClaimNFT(wallet.address, tokenURI)
         );
         console.log("Minted NFT to ," + wallet.address);
+        logMessage("Successfully Minted NFT to ," + wallet.address );
       }
       console.log("NFTs minted successfully");
     } catch (error) {
@@ -194,6 +199,7 @@ const generateWallets = async () => {
       // Burn all NFTs
       await sendTransaction(contract.methods.BurnReset());
       console.log("All NFTs have been burned.");
+      logMessage("All NFTs have been burned.");
 
       // Update the total supply
       getTotalSupply(contract);
@@ -238,6 +244,7 @@ const generateWallets = async () => {
   return (
     <div>
       <h3>Enter emails: </h3>
+      <p>These are the email addresses where the wallets will be distributed.</p>
       <div style={{ display: 'flex', flexDirection: 'row' }}>
         <div style={{ display: 'flex', flexDirection: 'column'}}>
           {/* Add email input fields */}
@@ -271,6 +278,7 @@ const generateWallets = async () => {
       </div>
       <div>
         <h3>Wallets: </h3>
+        <p>Click the Mint NFTs button below to Mint an NFT into each wallet that has been created. </p>
         {wallets.map((wallet, i) => (
           <div key={i}>
             <p>PrivateKey: {wallet.privateKey}</p>

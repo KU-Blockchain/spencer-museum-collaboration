@@ -1,12 +1,19 @@
-import React from "react";
 import ClaimComponent from "./pages/NewClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
 import About from "./pages/About";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 
 const App = () => {
+  const [consoleLogMessages, setConsoleLogMessages] = useState([]);
+
+  const logMessage = (message) => {
+    console.log(message);
+    setConsoleLogMessages((prevMessages) => [...prevMessages, message]);
+  };
+
   return (
     <Router>
       <div style={appStyles.container}>
@@ -33,18 +40,18 @@ const App = () => {
                 <Route path="/" element={<About styles={appStyles} />} />
                 <Route
                   path="/generate"
-                  element={<GenerateComponent styles={appStyles} />}
+                  element={<GenerateComponent styles={appStyles} logMessage={logMessage} />}
                 />
                 <Route
                   path="/claim"
-                  element={<ClaimComponent styles={appStyles} />}
+                  element={<ClaimComponent styles={appStyles} logMessage={logMessage}/>}
                 />
               </Routes>
             </div>
           </div>
           <div style={appStyles.rightSection}>
             <MovingCircles styles={appStyles} />
-            <DataLogSidebar styles={appStyles} />
+            <DataLogSidebar styles={appStyles}  messages={consoleLogMessages}/>
           </div>
         </div>
       </div>
