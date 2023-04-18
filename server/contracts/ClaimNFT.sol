@@ -10,6 +10,8 @@ contract ClaimNFT is ERC721URIStorage {
 
     // Mapping to track if an address already has an NFT
     mapping(address => bool) private _addressHasNFT;
+    mapping(uint256 => uint256) private _activeTokenIdIndex;
+    uint256 private _activeTokenCount;
 
     // Event to be emitted when land is claimed
     event LandClaimed(address indexed claimer, uint256 indexed tokenId);
@@ -29,6 +31,11 @@ contract ClaimNFT is ERC721URIStorage {
         _setTokenURI(newTokenId, tokenURI);
 
         _addressHasNFT[to] = true;
+
+        // Add the new token ID to the active tokens mapping and increment the active token count
+        _activeTokenIdIndex[_activeTokenCount] = newTokenId;
+        _activeTokenCount += 1;
+
         return true;
     }
 
@@ -37,7 +44,6 @@ contract ClaimNFT is ERC721URIStorage {
         return tokenURI(tokenId);
     }
 
-    // Add the `address sender` parameter to the claimLand function
     function claimLand(uint256 tokenId, address sender) public {
         // Check if the sender is the NFT owner
         require(
@@ -47,9 +53,26 @@ contract ClaimNFT is ERC721URIStorage {
 
         emit LandClaimed(sender, tokenId);
 
+        // Remove the token ID from the active tokens mapping and update the active token count
+        uint256 burnedTokenIndex = _activeTokenIdIndex[tokenId];
+        uint256 lastActiveTokenId = _activeTokenIdIndex[_activeTokenCount - 1];
+        _activeTokenIdIndex[burnedTokenIndex] = lastActiveTokenId;
+        _activeTokenIdIndex[lastActiveTokenId] = burnedTokenIndex;
+        delete _activeTokenIdIndex[_activeTokenCount - 1];
+        _activeTokenCount -= 1;
+
         _burn(tokenId);
         _addressHasNFT[sender] = false;
     }
+
+    function activeTokenIdByIndex(uint256 index) public view returns (uint256) {
+        require(index < _activeTokenCount, "Index out of range.");
+        return _activeTokenIdIndex[index];
+    }
+    function activeTokenCount() public view returns (uint256) {
+        return _activeTokenCount;
+    }
+
 
     // Function to burn all NFTs and reset the total number of instances of this contract to 0
     function BurnReset() public {

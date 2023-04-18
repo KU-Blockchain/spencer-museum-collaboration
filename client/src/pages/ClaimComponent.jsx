@@ -11,7 +11,7 @@ const ClaimComponent = ({ styles, logMessage }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [connectedAddress, setConnectedAddress] = useState("");
 
-  const claimNFTAddress = "0xe5d3c2fb5d5462e2c6459ceac0ee87336d2209cc";
+  const claimNFTAddress = "0xf43b8348111bd93509b14ff718d3cc17ab0fb62f";
 
   const handleVerification = async () => {
     try {
@@ -51,7 +51,7 @@ const ClaimComponent = ({ styles, logMessage }) => {
     }
   };
 
-  const handleClaim = async () => {
+  const handleClaim = async (tokenId) => {
     try {
       if (provider && nftDetected) {
         const claimNFTContract = new provider.eth.Contract(
@@ -59,36 +59,20 @@ const ClaimComponent = ({ styles, logMessage }) => {
           claimNFTAddress
         );
 
-        // Find the tokenId of the NFT owned by the user
-        const totalSupply = await claimNFTContract.methods.totalSupply().call();
-        let tokenId = 0;
-
-        for (let i = 1; i <= totalSupply; i++) {
-          if (
-            (await claimNFTContract.methods.ownerOf(i).call()) === userAddress
-          ) {
-            tokenId = i;
-            break;
-          }
-        }
-
-        if (tokenId === 0) {
-          setErrorMessage("No ClaimNFT found in the wallet");
-          return;
-        }
+  
         // Estimate the gas required for the transaction
         const gasLimit = await claimNFTContract.methods
           .claimLand(tokenId, userAddress)
           .estimateGas({ from: userAddress });
-
+  
         // Get the current gas price
         const gasPrice = await provider.eth.getGasPrice();
         logMessage("Gas limit: " + gasLimit);
-
+  
         const txData = claimNFTContract.methods
           .claimLand(tokenId, userAddress)
           .encodeABI();
-
+  
         const nonce = await provider.eth.getTransactionCount(userAddress);
         const rawTransaction = {
           from: connectedAddress,
@@ -99,18 +83,17 @@ const ClaimComponent = ({ styles, logMessage }) => {
           nonce: provider.utils.toHex(nonce),
           data: txData,
         };
-
+  
         const signedTx = await provider.eth.accounts.signTransaction(
           rawTransaction,
           privateKey
         );
-
+  
         const txReceipt = await provider.eth.sendSignedTransaction(
           signedTx.rawTransaction
         );
-
+  
         logMessage("Transaction hash: " + txReceipt.transactionHash);
-        console.log("Land claimed");
         logMessage("Land claimed");
         setNftDetected(false);
       } else {
@@ -122,61 +105,105 @@ const ClaimComponent = ({ styles, logMessage }) => {
       setErrorMessage(error.message);
     }
   };
+  
+  
 
   const transferFunds = async (claimNFTContract, tokenId) => {
     return new Promise(async (resolve, reject) => {
       try {
-      // Estimate gas required for the NFT claim transaction
-      const gasLimit = await claimNFTContract.methods
-        .claimLand(tokenId, userAddress)
-        .estimateGas({ from: userAddress });
-  
-      const gasPrice = await provider.eth.getGasPrice();
-  
-      // Calculate the required amount of Matic
-      const requiredMatic = provider.utils
-        .toBN(gasLimit)
-        .mul(provider.utils.toBN(gasPrice));
-  
-      // Add a 10% buffer
-      const bufferMultiplier = 1.1;
-      const bufferedMatic = requiredMatic.mul(provider.utils.toBN(Math.round(bufferMultiplier * 1e18))).div(provider.utils.toBN(1e18));
-  
-      const nonce = await provider.eth.getTransactionCount(connectedAddress);
-      const rawTransaction = {
-        from: connectedAddress,
-        to: userAddress,
-        value: provider.utils.toHex(bufferedMatic),
-        gasLimit: provider.utils.toHex(21000),
-        gasPrice: provider.utils.toHex(gasPrice),
-        nonce: provider.utils.toHex(nonce),
-      };
-  
-      const txHash = await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [rawTransaction],
-      });
-  
-      logMessage("Transaction hash (transfer): " + txHash);
-      console.log("Funds transferred");
-      logMessage("Funds transferred");
+        // Estimate gas required for the NFT claim transaction
+        const gasLimit = await claimNFTContract.methods
+          .claimLand(tokenId, userAddress)
+          .estimateGas({ from: userAddress });
 
-      // Wait for transaction confirmation
-      provider.eth.getTransactionReceipt(txHash, (error, receipt) => {
-        if (error) {
-          reject("Error getting transaction receipt: " + error.message);
-        } else {
-          resolve(receipt);
-        }
-      });
+        const gasPrice = await provider.eth.getGasPrice();
 
-    } catch (error) {
-      reject("Error transferring funds: " + error.message);
+        // Calculate the required amount of Matic
+        const requiredMatic = provider.utils
+          .toBN(gasLimit)
+          .mul(provider.utils.toBN(gasPrice));
+
+        // Add a 10% buffer
+        const bufferMultiplier = 1.1;
+        const bufferedMatic = requiredMatic
+          .mul(provider.utils.toBN(Math.round(bufferMultiplier * 1e18)))
+          .div(provider.utils.toBN(1e18));
+
+        const nonce = await provider.eth.getTransactionCount(connectedAddress);
+        const rawTransaction = {
+          from: connectedAddress,
+          to: userAddress,
+          value: provider.utils.toHex(bufferedMatic),
+          gasLimit: provider.utils.toHex(21000),
+          gasPrice: provider.utils.toHex(gasPrice),
+          nonce: provider.utils.toHex(nonce),
+        };
+
+        const txHash = await window.ethereum.request({
+          method: "eth_sendTransaction",
+          params: [rawTransaction],
+        });
+
+        logMessage("Transaction hash (transfer): " + txHash);
+        console.log("Funds transferred");
+        logMessage("Funds transferred");
+
+        // Wait for transaction confirmation
+        provider.eth.getTransactionReceipt(txHash, (error, receipt) => {
+          if (error) {
+            reject("Error getting transaction receipt: " + error.message);
+          } else {
+            resolve(receipt);
+          }
+        });
+      } catch (error) {
+        reject("Error transferring funds: " + error.message);
+      }
+    });
+  };
+
+  const handleClaimProcess = async () => {
+    const claimNFTContract = new provider.eth.Contract(
+      claimNFTABI.abi,
+      claimNFTAddress
+    );
+    logMessage("Claim Initiated...");
+
+    const activeTokenCount = await claimNFTContract.methods
+      .activeTokenCount()
+      .call();
+      console.log("activeTokenCount: " + activeTokenCount);
+    let tokenId = 0;
+
+    for (let i = 0; i < activeTokenCount; i++) {
+      const currentTokenId = await claimNFTContract.methods
+        .activeTokenIdByIndex(i)
+        .call();
+      if (
+        (await claimNFTContract.methods.ownerOf(currentTokenId).call()) ===
+        userAddress
+      ) {
+        
+        tokenId = i;
+        break;
+      }
     }
-  });
-};
+/*
+    if (tokenId === 0) {
+      setErrorMessage("No ClaimNFT found in the wallet");
+      return;
+    }
+*/
+    try {
+      logMessage("Token ID: " + tokenId);
+      await transferFunds(claimNFTContract, tokenId);
+      await handleClaim(tokenId);
+    } catch (error) {
+      logMessage("Error: " + error.message);
+      setErrorMessage("Error: " + error.message);
+    }
+  };
 
-  
   return (
     <div style={styles.section}>
       <h2 style={styles.title}>Claim</h2>
@@ -207,39 +234,7 @@ const ClaimComponent = ({ styles, logMessage }) => {
             style={styles.input}
           />
           <button
-            onClick={async () => {
-              const claimNFTContract = new provider.eth.Contract(
-                claimNFTABI.abi,
-                claimNFTAddress
-              );
-
-              const totalSupply = await claimNFTContract.methods
-                .totalSupply()
-                .call();
-              let tokenId = 0;
-
-              for (let i = 1; i <= totalSupply; i++) {
-                if (
-                  (await claimNFTContract.methods.ownerOf(i).call()) ===
-                  userAddress
-                ) {
-                  tokenId = i;
-                  break;
-                }
-              }
-
-              if (tokenId === 0) {
-                setErrorMessage("No ClaimNFT found in the wallet");
-                return;
-              }
-
-              try {
-                await transferFunds(claimNFTContract, tokenId);
-                await handleClaim();
-              } catch (error) {
-                setErrorMessage("Error: " + error.message);
-              }
-            }}
+            onClick={handleClaimProcess}
             style={styles.button}
             disabled={!nftDetected}
           >

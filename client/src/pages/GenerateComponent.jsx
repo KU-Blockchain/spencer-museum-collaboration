@@ -40,7 +40,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
       // Set up the contract
       const contractInstance = new web3Instance.eth.Contract(
         ClaimNFTABI.abi,
-        "0xe5d3c2fb5d5462e2c6459ceac0ee87336d2209cc"
+        "0xf43b8348111bd93509b14ff718d3cc17ab0fb62f"
       );
       setContract(contractInstance);
 
