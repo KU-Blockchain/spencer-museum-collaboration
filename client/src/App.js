@@ -1,4 +1,4 @@
-import ClaimComponent from "./pages/NewClaimComponent";
+import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
@@ -40,18 +40,28 @@ const App = () => {
                 <Route path="/" element={<About styles={appStyles} />} />
                 <Route
                   path="/generate"
-                  element={<GenerateComponent styles={appStyles} logMessage={logMessage} />}
+                  element={
+                    <GenerateComponent
+                      styles={appStyles}
+                      logMessage={logMessage}
+                    />
+                  }
                 />
                 <Route
                   path="/claim"
-                  element={<ClaimComponent styles={appStyles} logMessage={logMessage}/>}
+                  element={
+                    <ClaimComponent
+                      styles={appStyles}
+                      logMessage={logMessage}
+                    />
+                  }
                 />
               </Routes>
             </div>
           </div>
           <div style={appStyles.rightSection}>
             <MovingCircles styles={appStyles} />
-            <DataLogSidebar styles={appStyles}  messages={consoleLogMessages}/>
+            <DataLogSidebar styles={appStyles} messages={consoleLogMessages} />
           </div>
         </div>
       </div>
@@ -110,50 +120,53 @@ const appStyles = {
     borderRadius: "5px",
     fontWeight: "bold",
     outline: "2px solid #000000",
-    },
-    content: {
+  },
+  content: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     width: "100%",
-    },
-    circleContainer: {
+  },
+  circleContainer: {
     display: "flex",
     justifyContent: "center",
     marginBottom: "10px",
-    },
-    circle: {
+  },
+  circle: {
     width: "40px",
     height: "40px",
     borderRadius: "50%",
     backgroundColor: "#F9C2FF",
     margin: "0 10px",
     outline: "2px solid #000000",
-    },
-    rectangle: {
+  },
+  rectangle: {
     width: "200px",
     height: "50px",
     backgroundColor: "#BFEFFF",
     outline: "2px solid #000000",
-    },
-    title: {
+  },
+  title: {
     margin: "0 0 10px 0",
     fontWeight: "bold",
-    },
-    button: {
+  },
+  button: {
     padding: "10px 20px",
     backgroundColor: "#FFD1A4",
     borderRadius: "20px",
     border: "none",
     fontWeight: "bold",
     outline: "2px solid #000000",
-    },
-    sidebar: {
+  },
+  sidebar: {
     position: "relative",
     width: "25%",
-    backgroundColor: "#e6f9ff",
+    backgroundColor: "#e6f9ff", /* lighter shade of blue */
     padding: "20px",
-    },
-    };
-    
-    export default App;
+    fontFamily: "Courier New, monospace", /* font used in programming */
+    outline: "2px solid #000000",
+}
+
+};
+
+export default App;

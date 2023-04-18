@@ -14,10 +14,12 @@ contract ClaimNFT is ERC721URIStorage {
     // Event to be emitted when land is claimed
     event LandClaimed(address indexed claimer, uint256 indexed tokenId);
 
-    constructor() ERC721("ClaimNFT", "CLNFT") {
-    }
+    constructor() ERC721("ClaimNFT", "CLNFT") {}
 
-    function mintClaimNFT(address to, string memory tokenURI) public returns (bool) {
+    function mintClaimNFT(
+        address to,
+        string memory tokenURI
+    ) public returns (bool) {
         require(!_addressHasNFT[to], "This address already has a ClaimNFT.");
 
         _tokenIds.increment();
@@ -35,14 +37,18 @@ contract ClaimNFT is ERC721URIStorage {
         return tokenURI(tokenId);
     }
 
-    // Function to claim land and burn the NFT
-    function claimLand(uint256 tokenId) public {
-        require(ownerOf(tokenId) == msg.sender, "Only the owner can claim the land.");
+    // Add the `address sender` parameter to the claimLand function
+    function claimLand(uint256 tokenId, address sender) public {
+        // Check if the sender is the NFT owner
+        require(
+            ownerOf(tokenId) == sender,
+            "Only the owner can claim the land."
+        );
 
-        emit LandClaimed(msg.sender, tokenId);
+        emit LandClaimed(sender, tokenId);
 
         _burn(tokenId);
-        _addressHasNFT[msg.sender] = false;
+        _addressHasNFT[sender] = false;
     }
 
     // Function to burn all NFTs and reset the total number of instances of this contract to 0

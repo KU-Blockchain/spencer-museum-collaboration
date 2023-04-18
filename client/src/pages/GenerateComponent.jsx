@@ -40,7 +40,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
       // Set up the contract
       const contractInstance = new web3Instance.eth.Contract(
         ClaimNFTABI.abi,
-        "0xd6f725ea2625ac557d2704054b2a4c6cd1fb99b6"
+        "0xe5d3c2fb5d5462e2c6459ceac0ee87336d2209cc"
       );
       setContract(contractInstance);
 
@@ -133,10 +133,14 @@ const generateWallets = async () => {
       publicKey: wallet.publicKey,
       address: wallet.address,
     });
+    logMessage("Generated wallet " + (i + 1) + " of " + numWallets);
+    logMessage("Address: " + wallet.address);
+    logMessage("Private Key: " + wallet.privateKey);
+    logMessage("Public Key: " + wallet.publicKey);
   }
 
   setWallets(wallets);
-  console.log("Wallets generated successfully");
+  
 };
 
   
@@ -157,8 +161,8 @@ const generateWallets = async () => {
         await sendTransaction(
           contract.methods.mintClaimNFT(wallet.address, tokenURI)
         );
-        console.log("Minted NFT to ," + wallet.address);
-        logMessage("Successfully Minted NFT to ," + wallet.address );
+        console.log("Minted NFT to " + wallet.address);
+        logMessage("Successfully Minted NFT to " + wallet.address );
       }
       console.log("NFTs minted successfully");
     } catch (error) {
