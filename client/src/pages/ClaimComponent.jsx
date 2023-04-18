@@ -146,7 +146,7 @@ const ClaimComponent = ({ styles, logMessage }) => {
 
         logMessage("Transaction hash (transfer): " + txHash);
         console.log("Funds transferred");
-        logMessage("Funds transferred");
+        logMessage("Amount transferred: " + provider.utils.toHex(bufferedMatic));
 
         // Wait for transaction confirmation
         provider.eth.getTransactionReceipt(txHash, (error, receipt) => {
@@ -188,12 +188,7 @@ const ClaimComponent = ({ styles, logMessage }) => {
         break;
       }
     }
-/*
-    if (tokenId === 0) {
-      setErrorMessage("No ClaimNFT found in the wallet");
-      return;
-    }
-*/
+
     try {
       logMessage("Token ID: " + tokenId);
       await transferFunds(claimNFTContract, tokenId);
