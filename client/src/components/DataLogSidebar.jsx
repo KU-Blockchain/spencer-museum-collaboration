@@ -1,25 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const DataLogSidebar = ({ styles }) => {
-  const [text, setText] = useState("Sidebar filler text Sidebar filler textSidebar filler textSidebar filler textSidebar filler text"); // initial text state
-  // function to update text based on data from backend
-  const updateText = (data) => {
-    setText(data);
-  };
+// Custom useInterval hook for setting an interval
+function useInterval(callback, delay) {
+  const savedCallback = React.useRef();
+
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
+    if (delay !== null) {
+      let id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+  }, [delay]);
+}
+
+const DataLogSidebar = ({ styles, messages }) => {
+  const [displayedMessages, setDisplayedMessages] = useState(["Logged messages will appear here: "]);
+  const [messageQueue, setMessageQueue] = useState(messages);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  useEffect(() => {
+    setMessageQueue((prevQueue) => [...prevQueue, ...messages.slice(prevQueue.length)]);
+  }, [messages]);
+
+  useInterval(() => {
+    if (currentMessageIndex < messageQueue.length) {
+      const originalMessage = messageQueue[currentMessageIndex];
+      const displayedMessage = displayedMessages[currentMessageIndex] || "";
+
+      if (displayedMessage.length < originalMessage.length) {
+        setDisplayedMessages((prevDisplayedMessages) => {
+          const newDisplayedMessages = [...prevDisplayedMessages];
+          newDisplayedMessages[currentMessageIndex] = displayedMessage + originalMessage[displayedMessage.length];
+          return newDisplayedMessages;
+        });
+      } else {
+        setCurrentMessageIndex((prevIndex) => prevIndex + 1);
+      }
+    }
+  }, 50); // Adjust the typing speed by changing this value (milliseconds)
 
   return (
-    <div style={{ width: '100%'}}>
-      <p>{text}</p>
+    <div
+      style={{
+        ...styles.sidebar,
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      {displayedMessages.map((message, index) => (
+        <p key={index}>{message}</p>
+      ))}
     </div>
   );
 };
 
 export default DataLogSidebar;
-
-
-/*
-Here, we define a functional component called Sidebar that takes in the styles prop from the parent component. We also use the useState hook to manage the text state, initializing it with the string "Sidebar filler text".
-
-Inside the Sidebar component, we render a div element with a paragraph element that displays the current text state.
-
-To allow for updating the text from the backend, we also define a function called updateText that takes in new data and updates the text state with it. */
