@@ -5,7 +5,7 @@
 .env
 
 # Build files
-/client/build
+#/client/build
 
 # Log files
 *.log

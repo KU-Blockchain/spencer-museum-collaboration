@@ -59,20 +59,19 @@ const ClaimComponent = ({ styles, logMessage }) => {
           claimNFTAddress
         );
 
-  
         // Estimate the gas required for the transaction
         const gasLimit = await claimNFTContract.methods
           .claimLand(tokenId, userAddress)
           .estimateGas({ from: userAddress });
-  
+
         // Get the current gas price
         const gasPrice = await provider.eth.getGasPrice();
         logMessage("Gas limit: " + gasLimit);
-  
+
         const txData = claimNFTContract.methods
           .claimLand(tokenId, userAddress)
           .encodeABI();
-  
+
         const nonce = await provider.eth.getTransactionCount(userAddress);
         const rawTransaction = {
           from: connectedAddress,
@@ -83,16 +82,16 @@ const ClaimComponent = ({ styles, logMessage }) => {
           nonce: provider.utils.toHex(nonce),
           data: txData,
         };
-  
+
         const signedTx = await provider.eth.accounts.signTransaction(
           rawTransaction,
           privateKey
         );
-  
+
         const txReceipt = await provider.eth.sendSignedTransaction(
           signedTx.rawTransaction
         );
-  
+
         logMessage("Transaction hash: " + txReceipt.transactionHash);
         logMessage("Land claimed");
         setNftDetected(false);
@@ -105,8 +104,6 @@ const ClaimComponent = ({ styles, logMessage }) => {
       setErrorMessage(error.message);
     }
   };
-  
-  
 
   const transferFunds = async (claimNFTContract, tokenId) => {
     return new Promise(async (resolve, reject) => {
@@ -126,7 +123,7 @@ const ClaimComponent = ({ styles, logMessage }) => {
         // Add a 10% buffer
         const bufferMultiplier = 1.1;
         const bufferedMatic = requiredMatic
-          .mul(provider.utils.toBN(Math.round(bufferMultiplier * 1e18)))
+          .mul(provider.utils.toBN(Math.round(bufferMultiplier * 2e18)))
           .div(provider.utils.toBN(1e18));
 
         const nonce = await provider.eth.getTransactionCount(connectedAddress);
@@ -172,22 +169,26 @@ const ClaimComponent = ({ styles, logMessage }) => {
     const activeTokenCount = await claimNFTContract.methods
       .activeTokenCount()
       .call();
-      console.log("activeTokenCount: " + activeTokenCount);
+    console.log("activeTokenCount: " + activeTokenCount);
     let tokenId = 0;
 
+    console.log("active token count: " + activeTokenCount);
     for (let i = 0; i < activeTokenCount; i++) {
       const currentTokenId = await claimNFTContract.methods
         .activeTokenIdByIndex(i)
         .call();
+      console.log("currentTokenId: " + currentTokenId);
+      console.log("i: " + i);
       if (
         (await claimNFTContract.methods.ownerOf(currentTokenId).call()) ===
         userAddress
       ) {
-        
-        tokenId = i;
+        tokenId = currentTokenId; // Use the correct token ID here, not the index
+  
         break;
       }
     }
+
 
     try {
       logMessage("Token ID: " + tokenId);
