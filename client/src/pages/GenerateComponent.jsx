@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Web3 from "web3";
 import ClaimNFTABI from "../ABI/ClaimNFT.json";
 import emailjs from "emailjs-com"; // Import emailjs
@@ -6,13 +6,11 @@ import { ethers } from "ethers";
 
 
 const GenerateComponent = ({ styles, logMessage }) => {
-  const [web3, setWeb3] = useState(null);
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
-  const [pending, setPending] = useState(false); // New state for tracking pending status
+  //const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
-  const [numWallets, setNumWallets] = useState(1);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
 
   // Add your EmailJS credentials here
@@ -65,7 +63,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
         logMessage("Emails sent successfully");
       })();
     }
-  }, [wallets]);
+  }, [wallets, logMessage, sendEmails]);
   
 
   // New function to update email inputs
@@ -82,7 +80,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
   };
 
   // New function to send emails
-  const sendEmails = async () => {
+  const sendEmails = useCallback(async () => {
     console.log("wallets length in send emails: " + wallets.length);
     
     const emailPromises = wallets.map((wallet, index) => {
@@ -110,7 +108,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
     });
   
     await Promise.all(emailPromises);
-  };
+  }, [wallets, emailInputs]);
   
 
   const generateWalletsAndSendEmails = async () => {
@@ -211,7 +209,7 @@ const generateWallets = async () => {
       console.error("Error details:", error);
     }
   };
-
+/*
   const claimLand = async () => {
     if (!contract) {
       console.log("Contract not found. Check MetaMask connection.");
@@ -244,7 +242,7 @@ const generateWallets = async () => {
       return false;
     }
   };
-
+*/
   return (
     <div>
       <h3>Enter emails: </h3>
