@@ -6,11 +6,14 @@ import { ethers } from "ethers";
 
 
 const GenerateComponent = ({ styles, logMessage }) => {
+  // eslint-disable-next-line no-unused-vars
   const [numWallets, setNumWallets] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [web3, setWeb3] = useState(null);
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
@@ -58,30 +61,6 @@ const GenerateComponent = ({ styles, logMessage }) => {
     }
   }, [contract]);
 
-  useEffect(() => {
-    if (wallets.length > 0) {
-      (async () => {
-        await sendEmails();
-        console.log("Emails sent successfully");
-        logMessage("Emails sent successfully");
-      })();
-    }
-  }, [wallets, logMessage, sendEmails]);
-  
-
-  // New function to update email inputs
-  const handleEmailInputChange = (index, value) => {
-    const newEmailInputs = [...emailInputs];
-    newEmailInputs[index] = value;
-    setEmailInputs(newEmailInputs);
-  };
-
-  // New function to check if all email addresses are valid
-  const allEmailsValid = () => {
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    return emailInputs.every((email) => emailRegex.test(email));
-  };
-
   // New function to send emails
   const sendEmails = useCallback(async () => {
     console.log("wallets length in send emails: " + wallets.length);
@@ -112,6 +91,32 @@ const GenerateComponent = ({ styles, logMessage }) => {
   
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
+
+  useEffect(() => {
+    if (wallets.length > 0) {
+      (async () => {
+        await sendEmails();
+        console.log("Emails sent successfully");
+        logMessage("Emails sent successfully");
+      })();
+    }
+  }, [wallets, logMessage, sendEmails]);
+  
+
+  // New function to update email inputs
+  const handleEmailInputChange = (index, value) => {
+    const newEmailInputs = [...emailInputs];
+    newEmailInputs[index] = value;
+    setEmailInputs(newEmailInputs);
+  };
+
+  // New function to check if all email addresses are valid
+  const allEmailsValid = () => {
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    return emailInputs.every((email) => emailRegex.test(email));
+  };
+
+  
   
 
   const generateWalletsAndSendEmails = async () => {
@@ -212,40 +217,7 @@ const generateWallets = async () => {
       console.error("Error details:", error);
     }
   };
-/*
-  const claimLand = async () => {
-    if (!contract) {
-      console.log("Contract not found. Check MetaMask connection.");
-      return;
-    }
 
-    try {
-      const tokenId = await contract.methods
-        .tokenOfOwnerByIndex(account, 0)
-        .call({ from: account });
-
-      // Claim land by burning the NFT
-      const result = await contract.methods
-        .claimLand(tokenId)
-        .send({ from: account });
-
-      console.log("Transaction successful:", result);
-    } catch (error) {
-      console.error("Transaction failed:", error.message);
-    }
-  };
-
-  const hasClaimNFT = async () => {
-    try {
-      await contract.methods
-        .tokenOfOwnerByIndex(account, 0)
-        .call({ from: account });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-*/
   return (
     <div>
       <h3>Enter emails: </h3>
