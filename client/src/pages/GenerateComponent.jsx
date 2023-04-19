@@ -92,6 +92,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
 
+  /*
   useEffect(() => {
     if (wallets.length > 0) {
       (async () => {
@@ -101,7 +102,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
       })();
     }
   }, [wallets, logMessage, sendEmails]);
-  
+  */
 
   // New function to update email inputs
   const handleEmailInputChange = (index, value) => {
@@ -120,7 +121,11 @@ const GenerateComponent = ({ styles, logMessage }) => {
   
 
   const generateWalletsAndSendEmails = async () => {
-    await generateWallets();
+    await generateWallets(async () => {
+      await sendEmails();
+      console.log("Emails sent successfully");
+      logMessage("Emails sent successfully");
+    });
     console.log("Wallets generated successfully");
     logMessage("Wallets generated successfully");
   };
@@ -129,7 +134,7 @@ const GenerateComponent = ({ styles, logMessage }) => {
 
   // New function to generate a variable number of Ethereum wallets
   // New function to generate a variable number of Ethereum wallets
-const generateWallets = async () => {
+const generateWallets = async (callback) => {
   const wallets = [];
 
   for (let i = 0; i < numWallets; i++) {
@@ -146,6 +151,7 @@ const generateWallets = async () => {
   }
 
   setWallets(wallets);
+  callback();
   
 };
 
