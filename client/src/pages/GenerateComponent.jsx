@@ -6,12 +6,15 @@ import { ethers } from "ethers";
 
 
 const GenerateComponent = ({ styles, logMessage }) => {
+  const [numWallets, setNumWallets] = useState(1);
+  const [web3, setWeb3] = useState(null);
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
-  //const [pending, setPending] = useState(false); // New state for tracking pending status
+  const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
+  
 
   // Add your EmailJS credentials here
   const emailjsUserId = "JMcPDIEBGca8QqOIV";
