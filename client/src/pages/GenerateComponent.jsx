@@ -92,18 +92,6 @@ const GenerateComponent = ({ styles, logMessage }) => {
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
 
-  /*
-  useEffect(() => {
-    if (wallets.length > 0) {
-      (async () => {
-        await sendEmails();
-        console.log("Emails sent successfully");
-        logMessage("Emails sent successfully");
-      })();
-    }
-  }, [wallets, logMessage, sendEmails]);
-  */
-
   // New function to update email inputs
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
@@ -116,9 +104,6 @@ const GenerateComponent = ({ styles, logMessage }) => {
     const emailRegex = /^\S+@\S+\.\S+$/;
     return emailInputs.every((email) => emailRegex.test(email));
   };
-
-  
-  
 
   const generateWalletsAndSendEmails = async () => {
     await generateWallets(async () => {

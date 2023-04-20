@@ -1,0 +1,9 @@
+{
+    "name": "server",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.8.2",
+        "hardhat": "^2.13.1"
+    }
+}
