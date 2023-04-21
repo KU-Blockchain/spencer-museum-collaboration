@@ -5,7 +5,7 @@ import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
 
 
-const GenerateComponent = ({ styles, logMessage }) => {
+const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
   // eslint-disable-next-line no-unused-vars
   const [numWallets, setNumWallets] = useState(1);
   // eslint-disable-next-line no-unused-vars
@@ -121,12 +121,15 @@ const GenerateComponent = ({ styles, logMessage }) => {
   
 
   const generateWalletsAndSendEmails = async () => {
+    setNumWallets(numWallets=>numWallets+1)
+    
     await generateWallets(async () => {
       await sendEmails();
       console.log("Emails sent successfully");
       logMessage("Emails sent successfully");
     });
     console.log("Wallets generated successfully");
+    sendtoApp(wallets.length)
     logMessage("Wallets generated successfully");
   };
   
@@ -151,6 +154,7 @@ const generateWallets = async (callback) => {
   }
 
   setWallets(wallets);
+
   callback();
   
 };
@@ -224,8 +228,11 @@ const generateWallets = async (callback) => {
     }
   };
 
+  
+
   return (
     <div>
+      
       <h3>Enter emails: </h3>
       <p>These are the email addresses where the wallets will be distributed.</p>
       <div style={{ display: 'flex', flexDirection: 'row' }}>
@@ -255,7 +262,7 @@ const generateWallets = async (callback) => {
             onClick={generateWalletsAndSendEmails}
             disabled={!allEmailsValid()} // Disable button if not all emails are valid
           >
-            Generate Wallets
+            Generate Wallet
           </button>
         </div>
       </div>
