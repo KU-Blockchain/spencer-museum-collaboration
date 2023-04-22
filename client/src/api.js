@@ -39,4 +39,22 @@ export async function resetDatabase() {
     const data = await response.json();
     return data;
   }
+
+
+export async function fetchGlobalVars() {
+    const response = await fetch('http://localhost:5001/globalVars');
+    const globalVars = await response.json();
+    return globalVars;
+  }
+  
+export async function updateGlobalVars(globalVars) {
+    const response = await fetch('http://localhost:5001/globalVars', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(globalVars),
+    });
+    const updatedGlobalVars = await response.json();
+    return updatedGlobalVars;
+  }
+  
   

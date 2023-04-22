@@ -61,6 +61,34 @@ app.post('/reset', async (req, res) => {
   }
 });
 
+const GlobalVars = require('./models/globalVars'); // Import the GlobalStats model
+
+// Endpoint to fetch global stats
+app.get('/globalVars', async (req, res) => {
+  try {
+    const globalVars = await GlobalVars.findOne({});
+    res.status(200).json(globalVars);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching global vars' });
+  }
+});
+
+// Endpoint to update global stats
+app.put('/globalVars', async (req, res) => {
+  try {
+    const { ActiveNFTCount, ActiveWalletCount, ClaimedNFTCount } = req.body;
+    const globalVars = await GlobalVars.findOneAndUpdate(
+      {},
+      { ActiveNFTCount, ActiveWalletCount, ClaimedNFTCount },
+      { new: true, upsert: true }
+    );
+    res.status(200).json(globalVars);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating global vars' });
+  }
+});
+
+
 
 async function run() {
   try {
