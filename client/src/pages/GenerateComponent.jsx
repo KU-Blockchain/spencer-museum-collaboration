@@ -125,7 +125,7 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
         address: wallet.address,
         email: emailInputs[wallets.indexOf(wallet)], // Get the corresponding email from emailInputs array
         NFTstatus: false,
-        claimStatus: false,
+        claimed: false,
       };
       console.log("Calling createWallet for wallet:", walletData); // Add this console log
     await createWallet(walletData);
