@@ -9,6 +9,12 @@ import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
 
+  const [data,setData]=useState(0);
+
+  const generateToApp = (childdata) =>{
+    setData(childdata);
+  }
+
   const logMessage = (message) => {
     console.log(message);
     setConsoleLogMessages((prevMessages) => [...prevMessages, message]);
@@ -44,6 +50,7 @@ const App = () => {
                     <GenerateComponent
                       styles={appStyles}
                       logMessage={logMessage}
+                      sendtoApp={generateToApp}
                     />
                   }
                 />
@@ -60,7 +67,7 @@ const App = () => {
             </div>
           </div>
           <div style={appStyles.rightSection}>
-            <MovingCircles styles={appStyles} />
+            <MovingCircles styles={appStyles} numcircles={data} />
             <DataLogSidebar styles={appStyles} messages={consoleLogMessages} />
           </div>
         </div>
