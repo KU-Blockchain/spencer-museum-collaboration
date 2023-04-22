@@ -3,7 +3,7 @@
 
 # Environment variables
 .env
-
+/server/.env
 # Build files
 #/client/build
 
@@ -21,3 +21,8 @@ Thumbs.db
 server/artifacts/
 server/cache/
 server/node_modules/
+
+
+/old server/node_modules
+/old server/cache
+/old server/artifacts

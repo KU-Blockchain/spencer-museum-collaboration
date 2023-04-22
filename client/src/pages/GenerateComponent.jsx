@@ -3,6 +3,8 @@ import Web3 from "web3";
 import ClaimNFTABI from "../ABI/ClaimNFT.json";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
+import { createWallet, updateData, resetDatabase } from '../api'; // Assuming the functions are in a file named 'api.js'
+
 
 
 const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
@@ -92,18 +94,6 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
 
-  /*
-  useEffect(() => {
-    if (wallets.length > 0) {
-      (async () => {
-        await sendEmails();
-        console.log("Emails sent successfully");
-        logMessage("Emails sent successfully");
-      })();
-    }
-  }, [wallets, logMessage, sendEmails]);
-  */
-
   // New function to update email inputs
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
@@ -117,21 +107,33 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
     return emailInputs.every((email) => emailRegex.test(email));
   };
 
-  
-  
-
   const generateWalletsAndSendEmails = async () => {
-    setNumWallets(numWallets=>numWallets+1)
-    
+    setNumWallets((numWallets) => numWallets + 1);
+  
     await generateWallets(async () => {
       await sendEmails();
-      console.log("Emails sent successfully");
       logMessage("Emails sent successfully");
     });
-    console.log("Wallets generated successfully");
-    sendtoApp(wallets.length)
+    sendtoApp(wallets.length);
     logMessage("Wallets generated successfully");
+  
+    // Create wallet documents in the database
+    for (const wallet of wallets) {
+      const walletData = {
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+        address: wallet.address,
+        email: emailInputs[wallets.indexOf(wallet)], // Get the corresponding email from emailInputs array
+        NFTstatus: false,
+        claimStatus: false,
+      };
+      console.log("Calling createWallet for wallet:", walletData); // Add this console log
+    await createWallet(walletData);
+    console.log("Created wallet in database: " + wallet.address);
+    }
   };
+  
+  
   
   
 
@@ -177,13 +179,13 @@ const generateWallets = async (callback) => {
         await sendTransaction(
           contract.methods.mintClaimNFT(wallet.address, tokenURI)
         );
-        console.log("Minted NFT to " + wallet.address);
         logMessage("Successfully Minted NFT to " + wallet.address );
       }
-      console.log("NFTs minted successfully");
     } catch (error) {
       console.error("Transaction failed:", error.message);
     }
+      // Update ActiveNFTs and ClaimCount in the database
+    await updateData(wallets.length);
   };
 
   const getTotalSupply = async (contractInstance) => {
@@ -226,6 +228,9 @@ const generateWallets = async (callback) => {
     } catch (error) {
       console.error("Error details:", error);
     }
+    // Reset the database after burning all NFTs
+    await resetDatabase();
+
   };
 
   
