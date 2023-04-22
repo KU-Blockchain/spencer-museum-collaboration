@@ -49,8 +49,11 @@ const DataLogSidebar = ({ styles, messages }) => {
     <div
       style={{
         ...styles.sidebar,
-        width: "100%",
-        height: "100%",
+        /*position: "fixed",*/
+        width: "90%",
+        height: "20%",
+        overflow: "scroll",
+        resize: "none",
       }}
     >
       {displayedMessages.map((message, index) => (
