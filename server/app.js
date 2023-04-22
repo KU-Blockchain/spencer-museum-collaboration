@@ -1,13 +1,17 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
+require('dotenv').config();
+const cors = require('cors');
 
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 const dbPassword = process.env.DB_PASSWORD;
+const Wallet = require('./models/wallet');
 
 // Replace <password> with your actual password
-const uri = "mongodb+srv://enasseri02:{password}@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority";
+//const uri = `mongodb+srv://enasseri02:${dbPassword}@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority`;
+const uri = 'mongodb+srv://enasseri02:IGpL1fmUGgS6YFhp@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority';
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -19,6 +23,44 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// Use the express.json middleware to parse incoming JSON data
+app.use(express.json());
+app.use(cors());
+
+// POST endpoint to create a new wallet
+app.post('/wallet', async (req, res) => {
+  const walletData = req.body;
+  const wallet = new Wallet(walletData);
+  try {
+    await wallet.save();
+    res.status(201).send(wallet);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+// PUT endpoint to update ActiveNFTs and ClaimCount
+app.put('/update', async (req, res) => {
+  // Implement your logic for updating ActiveNFTs and ClaimCount
+  // You may need to create a separate schema and model for storing these values.
+});
+
+// POST endpoint to reset the database
+app.post('/reset', async (req, res) => {
+  try {
+    // Remove all wallets
+    await Wallet.deleteMany({});
+
+    // Reset ActiveNFTs and ClaimCount
+    // You may need to create a separate schema and model for storing these values.
+
+    res.status(200).send('Database reset successfully');
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
 
 async function run() {
   try {
@@ -32,6 +74,7 @@ async function run() {
     app.get('/', (req, res) => {
       res.send('Hello World!');
     });
+
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
@@ -54,3 +97,5 @@ async function run() {
 }
 
 run().catch(console.dir);
+
+

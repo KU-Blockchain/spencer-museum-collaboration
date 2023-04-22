@@ -3,7 +3,7 @@
 
 # Environment variables
 .env
-
+/server/.env
 # Build files
 #/client/build
 
