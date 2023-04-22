@@ -3,7 +3,7 @@ import Web3 from "web3";
 import ClaimNFTABI from "../ABI/ClaimNFT.json";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
-import { createWallet, updateData, resetDatabase } from '../api'; // Assuming the functions are in a file named 'api.js'
+import { createWallet, updateData, resetDatabase, incrementActiveWalletCount } from '../api'; // Assuming the functions are in a file named 'api.js'
 
 
 
@@ -31,7 +31,6 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
       // Check if MetaMask is installed
       if (!window.ethereum) {
         console.log("MetaMask is not installed.");
-    
         return;
       }
 
@@ -130,6 +129,9 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
       console.log("Calling createWallet for wallet:", walletData); // Add this console log
     await createWallet(walletData);
     console.log("Created wallet in database: " + wallet.address);
+    // Increment ActiveWalletCount
+    await incrementActiveWalletCount();
+    console.log("Incremented ActiveWalletCount");
     }
   };
   

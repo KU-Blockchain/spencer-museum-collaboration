@@ -1,3 +1,6 @@
+import axios from 'axios';
+const API_URL = 'http://localhost:5001'; 
+
 // Function to create a new wallet
 export async function createWallet(walletData) {
     try {
@@ -57,4 +60,9 @@ export async function updateGlobalVars(globalVars) {
     return updatedGlobalVars;
   }
   
+  // api.js
+export const incrementActiveWalletCount = async () => {
+    const response = await axios.patch(`${API_URL}/globalVars/incrementActiveWalletCount`);
+    return response.data;
+  };
   
