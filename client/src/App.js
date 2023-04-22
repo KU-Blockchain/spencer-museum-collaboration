@@ -165,6 +165,8 @@ const appStyles = {
     padding: "20px",
     fontFamily: "Courier New, monospace", /* font used in programming */
     outline: "2px solid #000000",
+    overflow: "scroll",
+    resize: "none",
 }
 
 };
