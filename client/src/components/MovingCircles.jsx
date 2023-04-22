@@ -1,9 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import anime from "animejs";
-import GenerateComponent from "../pages/GenerateComponent";
 
 const MovingCircles = ({ styles,numcircles }) => {
-  console.log(numcircles)
   const circleCount = Number(numcircles+1);
   const circleRadius = 40;
   const squareSize = 80;
@@ -41,7 +39,7 @@ const MovingCircles = ({ styles,numcircles }) => {
         loop: true,
       });
     });
-  }, [circlePositions]);
+  }, [circlePositions, circleCount]);
 
   return (
     <div style={{ ...styles.section }}>
