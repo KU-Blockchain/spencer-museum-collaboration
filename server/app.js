@@ -88,6 +88,23 @@ app.put('/globalVars', async (req, res) => {
   }
 });
 
+// app.js
+app.patch('/globalVars/incrementActiveWalletCount', async (req, res) => {
+  try {
+    const globalVars = await GlobalVars.findOne();
+    if (!globalVars) {
+      res.status(404).send('GlobalVars not found');
+      return;
+    }
+
+    globalVars.ActiveWalletCount += 1;
+    await globalVars.save();
+
+    res.status(200).send(globalVars);
+  } catch (error) {
+    res.status(500).send('Error incrementing ActiveWalletCount: ' + error.message);
+  }
+});
 
 
 async function run() {
