@@ -43,12 +43,23 @@ export async function resetDatabase() {
     return data;
   }
 
-
-export async function fetchGlobalVars() {
-    const response = await fetch('http://localhost:5001/globalVars');
-    const globalVars = await response.json();
-    return globalVars;
-  }
+export const fetchGlobalVars = async () => {
+    try {
+      const response = await fetch(`${API_URL}/globalVars`);
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching global variables:', error);
+      return null;
+    }
+  };
+  
+  
   
 export async function updateGlobalVars(globalVars) {
     const response = await fetch('http://localhost:5001/globalVars', {

@@ -28,6 +28,11 @@ const client = new MongoClient(uri, {
 app.use(express.json());
 app.use(cors());
 
+ // Now that we have connected, start the express server
+ app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
 // POST endpoint to create a new wallet
 app.post('/wallet', async (req, res) => {
   const walletData = req.body;
@@ -63,15 +68,16 @@ app.post('/reset', async (req, res) => {
 
 const GlobalVars = require('./models/globalVars'); // Import the GlobalStats model
 
-// Endpoint to fetch global stats
 app.get('/globalVars', async (req, res) => {
   try {
     const globalVars = await GlobalVars.findOne({});
+    console.log("globalVars:", globalVars); // Add this line
     res.status(200).json(globalVars);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching global vars' });
   }
 });
+
 
 // Endpoint to update global stats
 app.put('/globalVars', async (req, res) => {
@@ -115,11 +121,7 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
-    // Now that we have connected, start the express server
-    app.get('/', (req, res) => {
-      res.send('Hello World!');
-    });
-
+   
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
