@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
-import { createWallet, updateData, resetDatabase, incrementActiveWalletCount } from '../api'; // Assuming the functions are in a file named 'api.js'
+import { createWallet, updateData, resetGlobalVars, resetDatabase, incrementActiveWalletCount } from '../api'; // Assuming the functions are in a file named 'api.js'
 
 const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendtoApp }) => {
   // eslint-disable-next-line no-unused-vars
@@ -17,6 +17,17 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
   const emailjsUserId = "JMcPDIEBGca8QqOIV";
   const emailjsTemplateId = "template_qwekk94";
   const emailjsServiceId = "service_js0tfmo";
+  
+  useEffect(() => {
+    setEmailInputs((prevEmailInputs) => {
+      const newEmailInputs = Array(numWallets).fill("");
+      prevEmailInputs.forEach((email, index) => {
+        newEmailInputs[index] = email;
+      });
+      return newEmailInputs;
+    });
+  }, [numWallets]);
+  
 
   //updates the total supply without having to refresh the page
   useEffect(() => {
@@ -31,6 +42,7 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
     
     const emailPromises = wallets.map((wallet, index) => {
       const emailData = {
+        address: wallet.address,
         privateKey: wallet.privateKey,
         publicKey: wallet.publicKey,
         address: wallet.address,
@@ -90,13 +102,14 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
         claimed: false,
       };
       console.log("Calling createWallet for wallet:", walletData); // Add this console log
-    await createWallet(walletData);
-    console.log("Created wallet in database: " + wallet.address);
-    // Increment ActiveWalletCount
-    await incrementActiveWalletCount();
-    console.log("Incremented ActiveWalletCount");
+      await createWallet(walletData);
+      console.log("Created wallet in database: " + wallet.address);
+      // Increment ActiveWalletCount
+      await incrementActiveWalletCount();
+      console.log("Incremented ActiveWalletCount");
     }
   };
+  
   
 
   // New function to generate a variable number of Ethereum wallets
@@ -170,7 +183,8 @@ const generateWallets = async (callback) => {
     }
   };
 
-  const burnAll = async () => {
+
+  const reset = async () => {
     if (!contract) {
       console.log("Contract not found. Check MetaMask connection.");
       return;
@@ -189,7 +203,8 @@ const generateWallets = async (callback) => {
     }
     // Reset the database after burning all NFTs
     await resetDatabase();
-
+     // Reset the global variables
+    await resetGlobalVars();
   };
 
   
@@ -245,8 +260,8 @@ const generateWallets = async (callback) => {
         <button style={styles.button} onClick={mintNFTs}>
           Mint NFTs
         </button>
-        <button style={styles.button} onClick={burnAll}>
-          Burn All
+        <button style={styles.button} onClick={reset}>
+          Reset
         </button>
       </div>
       <div>Total Supply: {totalSupply}</div>

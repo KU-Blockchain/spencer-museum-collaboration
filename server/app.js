@@ -85,9 +85,9 @@ app.post('/reset', async (req, res) => {
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
-    res.status(200).send('Database reset successfully');
+    res.status(200).json({ message: 'Database reset successfully' });
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).json({ error: err });
   }
 });
 
@@ -118,6 +118,7 @@ app.put('/globalVars', async (req, res) => {
     res.status(500).json({ message: 'Error updating global vars' });
   }
 });
+
 
 // app.js
 app.patch('/globalVars/incrementActiveWalletCount', async (req, res) => {

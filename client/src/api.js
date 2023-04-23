@@ -35,13 +35,33 @@ export async function updateData() {
   }
   
   // Function to reset the database
-export async function resetDatabase() {
+  export async function resetDatabase() {
     const response = await fetch('http://localhost:5001/reset', {
       method: 'POST',
     });
+  
+    // Log the raw response
+    console.log('Raw server response:', response);
+  
     const data = await response.json();
     return data;
   }
+  
+  // Function to reset global variables
+export async function resetGlobalVars() {
+  const response = await fetch('http://localhost:5001/globalVars', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ActiveNFTCount: 0,
+      ActiveWalletCount: 0,
+      ClaimedNFTCount: 0,
+    }),
+  });
+  const updatedGlobalVars = await response.json();
+  return updatedGlobalVars;
+}
+
 
 export const fetchGlobalVars = async () => {
     try {
