@@ -3,8 +3,8 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 require('dotenv').config();
 const cors = require('cors');
-const { abi: claimNFTABI, address: claimNFTAddress } = require('./ClaimNFT.json'); // Import the ABI and address of your smart contract
-import abi from ".ABI/ClaimNFT.json";
+const { abi: claimNFTABI, address: claimNFTAddress } = require('./ABI/ClaimNFT.json');
+
 
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');

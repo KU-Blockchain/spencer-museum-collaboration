@@ -59,8 +59,8 @@ export const fetchGlobalVars = async () => {
     }
   };
 
-export async function updateActiveTokenCountInDatabase(activeTokenCount) {
-    const response = await fetch('/updateActiveTokenCount', {
+  export async function updateActiveTokenCountInDatabase(activeTokenCount) {
+    const response = await fetch(`${API_URL}/updateActiveTokenCount`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -75,9 +75,6 @@ export async function updateActiveTokenCountInDatabase(activeTokenCount) {
     const data = await response.json();
     return data;
   }
-  
-  
-  
   
 export async function updateGlobalVars(globalVars) {
     const response = await fetch('http://localhost:5001/globalVars', {
