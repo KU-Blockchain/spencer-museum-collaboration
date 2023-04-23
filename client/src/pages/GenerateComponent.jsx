@@ -1,19 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
-import Web3 from "web3";
-import ClaimNFTABI from "../ABI/ClaimNFT.json";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
 import { createWallet, updateData, resetDatabase, incrementActiveWalletCount } from '../api'; // Assuming the functions are in a file named 'api.js'
 
-
-
-const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
+const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendtoApp }) => {
   // eslint-disable-next-line no-unused-vars
   const [numWallets, setNumWallets] = useState(1);
-  // eslint-disable-next-line no-unused-vars
-  const [web3, setWeb3] = useState(null);
-  const [account, setAccount] = useState(null);
-  const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
   // eslint-disable-next-line no-unused-vars
   const [pending, setPending] = useState(false); // New state for tracking pending status
@@ -25,35 +17,6 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
   const emailjsUserId = "JMcPDIEBGca8QqOIV";
   const emailjsTemplateId = "template_qwekk94";
   const emailjsServiceId = "service_js0tfmo";
-
-  useEffect(() => {
-    const connectMetamask = async () => {
-      // Check if MetaMask is installed
-      if (!window.ethereum) {
-        console.log("MetaMask is not installed.");
-        return;
-      }
-
-      // Connect MetaMask and enable accounts
-      const web3Instance = new Web3(window.ethereum);
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setWeb3(web3Instance);
-      setAccount(accounts[0]);
-
-      // Set up the contract
-      const contractInstance = new web3Instance.eth.Contract(
-        ClaimNFTABI.abi,
-        "0xf43b8348111bd93509b14ff718d3cc17ab0fb62f"
-      );
-      setContract(contractInstance);
-
-      // Fetch total supply of NFTs
-      getTotalSupply(contractInstance);
-    };
-    connectMetamask();
-  }, []);
 
   //updates the total supply without having to refresh the page
   useEffect(() => {
@@ -135,11 +98,7 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
     }
   };
   
-  
-  
-  
 
-  // New function to generate a variable number of Ethereum wallets
   // New function to generate a variable number of Ethereum wallets
 const generateWallets = async (callback) => {
   const wallets = [];
@@ -163,8 +122,6 @@ const generateWallets = async (callback) => {
   
 };
 
-  
-  
   // New function to mint NFTs into the generated paper wallets
   const mintNFTs = async () => {
     if (!contract || wallets.length === 0) {

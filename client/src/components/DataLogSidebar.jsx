@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { fetchGlobalVars } from "../api";
+import { fetchGlobalVars, updateActiveTokenCountInDatabase } from "../api";
+
 // Custom useInterval hook for setting an interval
 function useInterval(callback, delay) {
   const savedCallback = React.useRef();
@@ -19,13 +20,11 @@ function useInterval(callback, delay) {
   }, [delay]);
 }
 
-
-
-
-const DataLogSidebar = ({ styles, messages }) => {
+const DataLogSidebar = ({  web3, contract, account,styles, messages }) => {
   const [displayedMessages, setDisplayedMessages] = useState([
     "Logged messages will appear here: ",
   ]);
+
   const [messageQueue, setMessageQueue] = useState(messages);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [globalVars, setGlobalVars] = useState({
@@ -34,14 +33,39 @@ const DataLogSidebar = ({ styles, messages }) => {
     ClaimedNFTCount: 0,
   });
 
+  async function getActiveTokenCountFromContract() {
+    if (contract) {
+      try {
+        const activeTokenCount = await contract.methods.totalSupply().call();
+        return activeTokenCount;
+      } catch (error) {
+        console.error('Error fetching active token count from contract:', error);
+      }
+    }
+    return 0;
+  }
+  
+
   useEffect(() => {
     setMessageQueue((prevQueue) => [
       ...prevQueue,
       ...messages.slice(prevQueue.length),
     ]);
   }, [messages]);
-  // Fetch global variables and update the state
-  // Fetch global variables and update the state
+  useEffect(() => {
+    const updateTokenCountInDatabase = async () => {
+      // Get the active token count from the smart contract
+      const activeTokenCount = await getActiveTokenCountFromContract();
+  
+      // Update the active token count in the database
+      await updateActiveTokenCountInDatabase(activeTokenCount);
+  
+    };
+  
+    updateTokenCountInDatabase();
+  }, [contract]);
+  
+
 useEffect(() => {
   const fetchAndSetGlobalVars = async () => {
     const fetchedGlobalVars = await fetchGlobalVars();

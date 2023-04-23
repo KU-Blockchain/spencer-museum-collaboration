@@ -3,6 +3,8 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 require('dotenv').config();
 const cors = require('cors');
+const { abi: claimNFTABI, address: claimNFTAddress } = require('./ClaimNFT.json'); // Import the ABI and address of your smart contract
+import abi from ".ABI/ClaimNFT.json";
 
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
@@ -32,6 +34,29 @@ app.use(cors());
  app.get('/', (req, res) => {
   res.send('Hello World!');
 });
+
+app.put('/updateActiveTokenCount', async (req, res) => {
+  const { activeTokenCount } = req.body;
+
+  try {
+    const updatedGlobalVars = await updateActiveTokenCountInDatabase(activeTokenCount);
+    res.status(200).json(updatedGlobalVars);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating active token count', error });
+  }
+});
+async function updateActiveTokenCountInDatabase(activeTokenCount) {
+  const globalVars = await GlobalVars.findOne();
+  if (!globalVars) {
+    throw new Error('GlobalVars not found');
+  }
+
+  globalVars.ActiveNFTCount = activeTokenCount;
+  await globalVars.save();
+
+  return globalVars;
+}
+
 
 // POST endpoint to create a new wallet
 app.post('/wallet', async (req, res) => {

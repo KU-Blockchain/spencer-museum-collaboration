@@ -7,4 +7,4 @@ const globalVarsSchema = new mongoose.Schema({
   ClaimedNFTCount: Number,
 });
 
-module.exports = mongoose.model('GlobalVars', globalVarsSchema, 'GlobalVars');
+module.exports = mongoose.model('GlobalVars', globalVarsSchema);

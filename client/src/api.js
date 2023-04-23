@@ -58,6 +58,24 @@ export const fetchGlobalVars = async () => {
       return null;
     }
   };
+
+export async function updateActiveTokenCountInDatabase(activeTokenCount) {
+    const response = await fetch('/updateActiveTokenCount', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ activeTokenCount }),
+    });
+  
+    if (!response.ok) {
+      throw new Error('Error updating active token count in database');
+    }
+  
+    const data = await response.json();
+    return data;
+  }
+  
   
   
   
