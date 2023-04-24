@@ -1,8 +1,13 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 5001;
-require('dotenv').config();
+const http = require("http");
+const server = http.createServer(app); 
 const cors = require('cors');
+require('dotenv').config();
+
+
+const PORT = process.env.PORT || 5001;
+
 const { abi: claimNFTABI, address: claimNFTAddress } = require('./ABI/ClaimNFT.json');
 const { updateActiveWalletCount } = require('./api');
 
@@ -28,9 +33,21 @@ const client = new MongoClient(uri, {
   },
 });
 
+//app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000', // Or the URL of your client-side app
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization', 'my-custom-header'],
+  credentials: true,
+};
+
+const io = require("socket.io")(server, {
+  cors: corsOptions
+});
+app.use(cors(corsOptions));
+
 // Use the express.json middleware to parse incoming JSON data
 app.use(express.json());
-app.use(cors());
 
  // Now that we have connected, start the express server
  app.get('/', (req, res) => {
@@ -90,6 +107,8 @@ app.post("/claim", async (req, res) => {
   const claim = new Claim(claimData);
   try {
     await claim.save();
+    // Emit an event to all connected clients
+    io.emit("claimInitiated", claimed.timestamp);
     console.log("Claim data saved to database:", claim);
     res.status(201).json(claim);
   } catch (err) {
@@ -110,6 +129,8 @@ app.post('/reset', async (req, res) => {
   try {
     // Remove all wallets
     const result = await Wallet.deleteMany({});
+    // Remove all claims
+    const claimResult = await Claim.deleteMany({});
 
     await updateActiveWalletCount(-data.deletedCount);
     // Reset ActiveNFTs and ClaimCount
@@ -179,7 +200,7 @@ async function run() {
 
    
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
 

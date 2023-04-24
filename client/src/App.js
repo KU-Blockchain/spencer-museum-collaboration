@@ -2,11 +2,19 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
+import Timer from "./components/Timer";
 import About from "./pages/About";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
+import io from 'socket.io-client';
+const socket = io('http://localhost:5001', {
+  withCredentials: true,
+  extraHeaders: {
+    'my-custom-header': 'abcd'
+  }
+});
 
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
@@ -107,6 +115,7 @@ const App = () => {
             </div>
           </div>
           <div style={appStyles.rightSection}>
+          <Timer />
             <MovingCircles styles={appStyles} numcircles={data} />
             <DataLogSidebar
               styles={appStyles}
