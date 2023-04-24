@@ -101,14 +101,14 @@ app.post("/wallets", async (req, res) => {
 
 // POST endpoint to save claim data
 app.post("/claim", async (req, res) => {
-  console.log("Received POST request to /claimed");
+  console.log("Received POST request to /claim");
   const claimData = req.body;
   console.log("Claim data received:", claimData);
   const claim = new Claim(claimData);
   try {
     await claim.save();
     // Emit an event to all connected clients
-    io.emit("claimInitiated", claimed.timestamp);
+    io.emit("claimInitiated", claim.timestamp);
     console.log("Claim data saved to database:", claim);
     res.status(201).json(claim);
   } catch (err) {

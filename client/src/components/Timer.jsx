@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
 
 const Timer = () => {
+    console.log("Timer.jsx")
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [intervalId, setIntervalId] = useState(null);
 
@@ -34,7 +35,9 @@ const Timer = () => {
     const seconds = Math.floor((ms / 1000) % 60);
     const minutes = Math.floor(ms / 1000 / 60);
 
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return (
