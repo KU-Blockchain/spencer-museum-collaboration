@@ -6,10 +6,12 @@ const cors = require('cors');
 const { abi: claimNFTABI, address: claimNFTAddress } = require('./ABI/ClaimNFT.json');
 const { updateActiveWalletCount } = require('./api');
 
+
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 const dbPassword = process.env.DB_PASSWORD;
 const Wallet = require('./models/wallet');
+const Claim = require("./models/claim");
 
 // Replace <password> with your actual password
 //const uri = `mongodb+srv://enasseri02:${dbPassword}@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority`;
@@ -75,6 +77,21 @@ app.post("/wallets", async (req, res) => {
   }
 });
 
+// POST endpoint to save claim data
+app.post("/claim", async (req, res) => {
+  console.log("Received POST request to /claimed");
+  const claimData = req.body;
+  console.log("Claim data received:", claimData);
+  const claim = new Claim(claimData);
+  try {
+    await claim.save();
+    console.log("Claim data saved to database:", claim);
+    res.status(201).json(claim);
+  } catch (err) {
+    console.error("Error saving claim data:", err);
+    res.status(500).send(err);
+  }
+});
 
 
 // PUT endpoint to update ActiveNFTs and ClaimCount

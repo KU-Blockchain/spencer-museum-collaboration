@@ -8,14 +8,12 @@ import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
 
-
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
   const [data, setData] = useState(0);
-  
 
   useEffect(() => {
     const connectMetamask = async () => {
@@ -36,7 +34,7 @@ const App = () => {
       // Set up the contract
       const contractInstance = new web3Instance.eth.Contract(
         ClaimNFTABI.abi,
-        "0x4b995f6a409d9ef489b5309cf38ff2f388c2f73b"
+        "0xcb3bd1b51331a4d2fcffc9faf1f72f332ed7dd3e"
       );
       setContract(contractInstance);
     };
@@ -92,13 +90,17 @@ const App = () => {
                 <Route
                   path="/claim"
                   element={
-                    <ClaimComponent
-                      styles={appStyles}
-                      logMessage={logMessage}
-                      web3={web3}
-                      contract={contract}
-                      account={account}
-                    />
+                    web3 ? (
+                      <ClaimComponent
+                        styles={appStyles}
+                        logMessage={logMessage}
+                        web3={web3}
+                        contract={contract}
+                        account={account}
+                      />
+                    ) : (
+                      <p>Loading...</p>
+                    )
                   }
                 />
               </Routes>

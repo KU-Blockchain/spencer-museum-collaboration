@@ -11,6 +11,7 @@ contract ClaimNFT is ERC721URIStorage {
     // Mapping to track if an address already has an NFT
     mapping(address => bool) private _addressHasNFT;
     mapping(uint256 => uint256) private _activeTokenIdIndex;
+    mapping(uint256 => bool) private _isTokenClaimed;
     uint256 private _activeTokenCount;
 
     // Event to be emitted when land is claimed
@@ -45,46 +46,45 @@ contract ClaimNFT is ERC721URIStorage {
     }
 
     function claimLand(uint256 tokenId, address sender) public {
-        // Check if the sender is the NFT owner
         require(
             ownerOf(tokenId) == sender,
             "Only the owner can claim the land."
         );
+        require(
+            !_isTokenClaimed[tokenId],
+            "This token has already been claimed."
+        );
 
         emit LandClaimed(sender, tokenId);
 
-        // Remove the token ID from the active tokens mapping and update the active token count
-        uint256 burnedTokenIndex = _activeTokenIdIndex[tokenId];
-        uint256 lastActiveTokenId = _activeTokenIdIndex[_activeTokenCount - 1];
-        _activeTokenIdIndex[burnedTokenIndex] = lastActiveTokenId;
-        _activeTokenIdIndex[lastActiveTokenId] = burnedTokenIndex;
-        delete _activeTokenIdIndex[_activeTokenCount - 1];
-        _activeTokenCount -= 1;
+        _isTokenClaimed[tokenId] = true;
+    }
 
-        _burn(tokenId);
-        _addressHasNFT[sender] = false;
+    function isTokenClaimed(uint256 tokenId) public view returns (bool) {
+        return _isTokenClaimed[tokenId];
     }
 
     function activeTokenIdByIndex(uint256 index) public view returns (uint256) {
         require(index < _activeTokenCount, "Index out of range.");
         return _activeTokenIdIndex[index];
     }
+
     function activeTokenCount() public view returns (uint256) {
         return _activeTokenCount;
     }
 
-
     // Function to burn all NFTs and reset the total number of instances of this contract to 0
     function BurnReset() public {
-        for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {
-            if (_exists(tokenId)) {
-                address tokenOwner = ownerOf(tokenId);
-                _burn(tokenId);
-                _addressHasNFT[tokenOwner] = false;
-            }
+    for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {
+        if (_exists(tokenId)) {
+            address tokenOwner = ownerOf(tokenId);
+            _burn(tokenId);
+            _addressHasNFT[tokenOwner] = false;
+            _isTokenClaimed[tokenId] = false; // Reset the claimed status of the token
         }
-        _tokenIds.reset();
     }
+    _tokenIds.reset();
+}
 
     // Function to get the total number of instances of this contract/NFT
     function totalSupply() public view returns (uint256) {
