@@ -3,6 +3,7 @@ const API_URL = "http://localhost:5001";
 
 // Function to create a new wallet
 export async function createWallet(walletData) {
+    console.log("createWallet called with data:", walletData); // Add this console log
     const response = await fetch(`${API_URL}/wallets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
