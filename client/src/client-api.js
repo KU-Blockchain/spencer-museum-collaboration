@@ -21,7 +21,7 @@ export async function createWallet(walletData) {
 
 export const saveClaimData = async (walletAddress, timestamp) => {
     console.log("sending claim data to server:", walletAddress, timestamp);
-    const response = await fetch("/claim", {
+    const response = await fetch(`${API_URL}/claim`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -58,6 +58,11 @@ async function updateActiveTokenCountInDatabase(activeTokenCount) {
 
   return globalVars;
 }
+app.use((req, res, next) => {
+  console.log(`Request URL: ${req.url} | Request method: ${req.method}`);
+  next();
+});
+
 // POST endpoint to create a new wallet
 app.post("/wallets", async (req, res) => {
   console.log("Received POST request to /wallets"); // Add this console log
