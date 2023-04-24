@@ -3,6 +3,8 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 require('dotenv').config();
 const cors = require('cors');
+const { abi: claimNFTABI, address: claimNFTAddress } = require('./ABI/ClaimNFT.json');
+const { updateActiveWalletCount } = require('./api');
 
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
@@ -28,17 +30,52 @@ const client = new MongoClient(uri, {
 app.use(express.json());
 app.use(cors());
 
+ // Now that we have connected, start the express server
+ app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.put('/updateActiveTokenCount', async (req, res) => {
+  const { activeTokenCount } = req.body;
+
+  try {
+    const updatedGlobalVars = await updateActiveTokenCountInDatabase(activeTokenCount);
+    res.status(200).json(updatedGlobalVars);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating active token count', error });
+  }
+});
+async function updateActiveTokenCountInDatabase(activeTokenCount) {
+  const globalVars = await GlobalVars.findOne();
+  if (!globalVars) {
+    throw new Error('GlobalVars not found');
+  }
+
+  globalVars.ActiveNFTCount = activeTokenCount;
+  await globalVars.save();
+
+  return globalVars;
+}
 // POST endpoint to create a new wallet
-app.post('/wallet', async (req, res) => {
+app.post("/wallets", async (req, res) => {
+  console.log("Received POST request to /wallets"); // Add this console log
   const walletData = req.body;
+  console.log("Wallet data received:", walletData); // Add this console log
   const wallet = new Wallet(walletData);
   try {
     await wallet.save();
-    res.status(201).send(wallet);
+    console.log("Wallet saved to database:", wallet); // Add this console log
+
+    // Increment ActiveWalletCount
+    await updateActiveWalletCount(1);
+    res.status(201).json(wallet);
   } catch (err) {
+    console.error("Error saving wallet:", err); // Add this console log
     res.status(500).send(err);
   }
 });
+
+
 
 // PUT endpoint to update ActiveNFTs and ClaimCount
 app.put('/update', async (req, res) => {
@@ -50,14 +87,62 @@ app.put('/update', async (req, res) => {
 app.post('/reset', async (req, res) => {
   try {
     // Remove all wallets
-    await Wallet.deleteMany({});
+    const result = await Wallet.deleteMany({});
 
+    await updateActiveWalletCount(-data.deletedCount);
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
-    res.status(200).send('Database reset successfully');
+    res.status(200).json({ message: "Database reset successfully", deletedCount: result.deletedCount });
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).json({ error: err });
+  }
+});
+
+const GlobalVars = require('./models/globalVars'); // Import the GlobalStats model
+
+app.get('/globalVars', async (req, res) => {
+  try {
+    const globalVars = await GlobalVars.findOne({});
+    console.log("globalVars:", globalVars); // Add this line
+    res.status(200).json(globalVars);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching global vars' });
+  }
+});
+
+
+// Endpoint to update global stats
+app.put('/globalVars', async (req, res) => {
+  try {
+    const { ActiveNFTCount, ActiveWalletCount, ClaimedNFTCount } = req.body;
+    const globalVars = await GlobalVars.findOneAndUpdate(
+      {},
+      { ActiveNFTCount, ActiveWalletCount, ClaimedNFTCount },
+      { new: true, upsert: true }
+    );
+    res.status(200).json(globalVars);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating global vars' });
+  }
+});
+
+
+// app.js
+app.patch('/globalVars/incrementActiveWalletCount', async (req, res) => {
+  try {
+    const globalVars = await GlobalVars.findOne();
+    if (!globalVars) {
+      res.status(404).send('GlobalVars not found');
+      return;
+    }
+
+    globalVars.ActiveWalletCount += 1;
+    await globalVars.save();
+
+    res.status(200).send(globalVars);
+  } catch (error) {
+    res.status(500).send('Error incrementing ActiveWalletCount: ' + error.message);
   }
 });
 
@@ -70,11 +155,7 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
-    // Now that we have connected, start the express server
-    app.get('/', (req, res) => {
-      res.send('Hello World!');
-    });
-
+   
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

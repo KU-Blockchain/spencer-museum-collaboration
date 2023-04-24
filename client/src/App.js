@@ -3,17 +3,49 @@ import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
 import About from "./pages/About";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import Web3 from "web3";
+import ClaimNFTABI from "./ABI/ClaimNFT.json";
+
 
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
+  const [web3, setWeb3] = useState(null);
+  const [contract, setContract] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [data, setData] = useState(0);
+  
 
-  const [data,setData]=useState(0);
+  useEffect(() => {
+    const connectMetamask = async () => {
+      // Check if MetaMask is installed
+      if (!window.ethereum) {
+        console.log("MetaMask is not installed.");
+        return;
+      }
 
-  const generateToApp = (childdata) =>{
+      // Connect MetaMask and enable accounts
+      const web3Instance = new Web3(window.ethereum);
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      setWeb3(web3Instance);
+      setAccount(accounts[0]);
+
+      // Set up the contract
+      const contractInstance = new web3Instance.eth.Contract(
+        ClaimNFTABI.abi,
+        "0x4b995f6a409d9ef489b5309cf38ff2f388c2f73b"
+      );
+      setContract(contractInstance);
+    };
+    connectMetamask();
+  }, []);
+
+  const generateToApp = (childdata) => {
     setData(childdata);
-  }
+  };
 
   const logMessage = (message) => {
     console.log(message);
@@ -51,6 +83,9 @@ const App = () => {
                       styles={appStyles}
                       logMessage={logMessage}
                       sendtoApp={generateToApp}
+                      web3={web3}
+                      contract={contract}
+                      account={account}
                     />
                   }
                 />
@@ -60,6 +95,9 @@ const App = () => {
                     <ClaimComponent
                       styles={appStyles}
                       logMessage={logMessage}
+                      web3={web3}
+                      contract={contract}
+                      account={account}
                     />
                   }
                 />
@@ -68,7 +106,13 @@ const App = () => {
           </div>
           <div style={appStyles.rightSection}>
             <MovingCircles styles={appStyles} numcircles={data} />
-            <DataLogSidebar styles={appStyles} messages={consoleLogMessages} />
+            <DataLogSidebar
+              styles={appStyles}
+              messages={consoleLogMessages}
+              web3={web3}
+              contract={contract}
+              account={account}
+            />
           </div>
         </div>
       </div>
@@ -168,14 +212,13 @@ const appStyles = {
   sidebar: {
     position: "relative",
     width: "25%",
-    backgroundColor: "#e6f9ff", /* lighter shade of blue */
+    backgroundColor: "#e6f9ff" /* lighter shade of blue */,
     padding: "20px",
-    fontFamily: "Courier New, monospace", /* font used in programming */
+    fontFamily: "Courier New, monospace" /* font used in programming */,
     outline: "2px solid #000000",
     overflow: "scroll",
     resize: "none",
-}
-
+  },
 };
 
 export default App;
