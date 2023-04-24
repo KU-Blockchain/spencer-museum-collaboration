@@ -4,7 +4,7 @@ const PORT = process.env.PORT || 5001;
 require('dotenv').config();
 const cors = require('cors');
 const { abi: claimNFTABI, address: claimNFTAddress } = require('./ABI/ClaimNFT.json');
-
+const { updateActiveWalletCount } = require('./api');
 
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
@@ -56,19 +56,26 @@ async function updateActiveTokenCountInDatabase(activeTokenCount) {
 
   return globalVars;
 }
-
-
 // POST endpoint to create a new wallet
-app.post('/wallet', async (req, res) => {
+app.post("/wallets", async (req, res) => {
+  console.log("Received POST request to /wallets"); // Add this console log
   const walletData = req.body;
+  console.log("Wallet data received:", walletData); // Add this console log
   const wallet = new Wallet(walletData);
   try {
     await wallet.save();
-    res.status(201).send(wallet);
+    console.log("Wallet saved to database:", wallet); // Add this console log
+
+    // Increment ActiveWalletCount
+    await updateActiveWalletCount(1);
+    res.status(201).json(wallet);
   } catch (err) {
+    console.error("Error saving wallet:", err); // Add this console log
     res.status(500).send(err);
   }
 });
+
+
 
 // PUT endpoint to update ActiveNFTs and ClaimCount
 app.put('/update', async (req, res) => {
@@ -80,12 +87,13 @@ app.put('/update', async (req, res) => {
 app.post('/reset', async (req, res) => {
   try {
     // Remove all wallets
-    await Wallet.deleteMany({});
+    const result = await Wallet.deleteMany({});
 
+    await updateActiveWalletCount(-data.deletedCount);
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
-    res.status(200).json({ message: 'Database reset successfully' });
+    res.status(200).json({ message: "Database reset successfully", deletedCount: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err });
   }

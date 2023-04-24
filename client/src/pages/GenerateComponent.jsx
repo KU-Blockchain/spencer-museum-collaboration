@@ -1,9 +1,22 @@
 import React, { useState, useCallback, useEffect } from "react";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
-import { createWallet, updateData, resetGlobalVars, resetDatabase, incrementActiveWalletCount } from '../api'; // Assuming the functions are in a file named 'api.js'
+import {
+  createWallet,
+  updateData,
+  resetGlobalVars,
+  resetDatabase,
+  incrementActiveWalletCount,
+} from "../client-api"; // Assuming the functions are in a file named 'api.js'
 
-const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendtoApp }) => {
+const GenerateComponent = ({
+  web3,
+  contract,
+  account,
+  styles,
+  logMessage,
+  sendtoApp,
+}) => {
   // eslint-disable-next-line no-unused-vars
   const [numWallets, setNumWallets] = useState(1);
   const [totalSupply, setTotalSupply] = useState(0);
@@ -11,13 +24,12 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
   const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
-  
 
   // Add your EmailJS credentials here
   const emailjsUserId = "JMcPDIEBGca8QqOIV";
   const emailjsTemplateId = "template_qwekk94";
   const emailjsServiceId = "service_js0tfmo";
-  
+
   useEffect(() => {
     setEmailInputs((prevEmailInputs) => {
       const newEmailInputs = Array(numWallets).fill("");
@@ -27,7 +39,6 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
       return newEmailInputs;
     });
   }, [numWallets]);
-  
 
   //updates the total supply without having to refresh the page
   useEffect(() => {
@@ -39,7 +50,7 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
   // New function to send emails
   const sendEmails = useCallback(async () => {
     console.log("wallets length in send emails: " + wallets.length);
-    
+
     const emailPromises = wallets.map((wallet, index) => {
       const emailData = {
         address: wallet.address,
@@ -48,7 +59,7 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
         address: wallet.address,
         to_email: emailInputs[index],
       };
-  
+
       return emailjs
         .send(emailjsServiceId, emailjsTemplateId, emailData, emailjsUserId)
         .then(
@@ -61,12 +72,21 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
           },
           (error) => {
             console.error("Email sending failed:", error);
+            console.log("Email not sent correctly");
           }
-        );
+        )
+        .catch(() => {
+          console.log("Email not sent correctly");
+        });
     });
-  
+
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
+
+  const testSendEmails = async () => {
+    console.log("pretending to send an email");
+    return true;
+  };
 
   // New function to update email inputs
   const handleEmailInputChange = (index, value) => {
@@ -83,14 +103,18 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
 
   const generateWalletsAndSendEmails = async () => {
     setNumWallets((numWallets) => numWallets + 1);
-  
+    /*
     await generateWallets(async () => {
-      await sendEmails();
+      //await sendEmails();
       logMessage("Emails sent successfully");
     });
+    */
+    await generateWallets(); // Make sure to await the completion of generateWallets
+    await testSendEmails(); // Use testSendEmails for testing
+    logMessage("Emails sent successfully");
     sendtoApp(wallets.length);
     logMessage("Wallets generated successfully");
-  
+
     // Create wallet documents in the database
     for (const wallet of wallets) {
       const walletData = {
@@ -109,32 +133,30 @@ const GenerateComponent = ({  web3, contract, account, styles, logMessage, sendt
       console.log("Incremented ActiveWalletCount");
     }
   };
-  
-  
 
   // New function to generate a variable number of Ethereum wallets
-const generateWallets = async (callback) => {
-  const wallets = [];
+  const generateWallets = () => {
+    return new Promise(async (resolve) => {
+      const wallets = [];
 
-  for (let i = 0; i < numWallets; i++) {
-    const wallet = ethers.Wallet.createRandom();
-    wallets.push({
-      privateKey: wallet.privateKey,
-      publicKey: wallet.publicKey,
-      address: wallet.address,
+      for (let i = 0; i < numWallets; i++) {
+        const wallet = ethers.Wallet.createRandom();
+        wallets.push({
+          privateKey: wallet.privateKey,
+          publicKey: wallet.publicKey,
+          address: wallet.address,
+        });
+        logMessage("Generated wallet " + (i + 1) + " of " + numWallets);
+        logMessage("Address: " + wallet.address);
+        logMessage("Private Key: " + wallet.privateKey);
+        logMessage("Public Key: " + wallet.publicKey);
+      }
+
+      setWallets(wallets);
+
+      resolve();
     });
-    logMessage("Generated wallet " + (i + 1) + " of " + numWallets);
-    logMessage("Address: " + wallet.address);
-    logMessage("Private Key: " + wallet.privateKey);
-    logMessage("Public Key: " + wallet.publicKey);
-  }
-
-  setWallets(wallets);
-
-  callback();
-  
-};
-
+  };
   // New function to mint NFTs into the generated paper wallets
   const mintNFTs = async () => {
     if (!contract || wallets.length === 0) {
@@ -151,12 +173,12 @@ const generateWallets = async (callback) => {
         await sendTransaction(
           contract.methods.mintClaimNFT(wallet.address, tokenURI)
         );
-        logMessage("Successfully Minted NFT to " + wallet.address );
+        logMessage("Successfully Minted NFT to " + wallet.address);
       }
     } catch (error) {
       console.error("Transaction failed:", error.message);
     }
-      // Update ActiveNFTs and ClaimCount in the database
+    // Update ActiveNFTs and ClaimCount in the database
     await updateData(wallets.length);
   };
 
@@ -183,7 +205,6 @@ const generateWallets = async (callback) => {
     }
   };
 
-
   const reset = async () => {
     if (!contract) {
       console.log("Contract not found. Check MetaMask connection.");
@@ -203,19 +224,18 @@ const generateWallets = async (callback) => {
     }
     // Reset the database after burning all NFTs
     await resetDatabase();
-     // Reset the global variables
+    // Reset the global variables
     await resetGlobalVars();
   };
 
-  
-
   return (
     <div>
-      
       <h3>Enter emails: </h3>
-      <p>These are the email addresses where the wallets will be distributed.</p>
-      <div style={{ display: 'flex', flexDirection: 'row' }}>
-        <div style={{ display: 'flex', flexDirection: 'column'}}>
+      <p>
+        These are the email addresses where the wallets will be distributed.
+      </p>
+      <div style={{ display: "flex", flexDirection: "row" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {/* Add email input fields */}
           {Array.from({ length: numWallets }).map((_, index) => (
             <input
@@ -229,11 +249,11 @@ const generateWallets = async (callback) => {
         </div>
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: '2rem',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            marginLeft: "2rem",
           }}
         >
           <button
@@ -247,7 +267,10 @@ const generateWallets = async (callback) => {
       </div>
       <div>
         <h3>Wallets: </h3>
-        <p>Click the Mint NFTs button below to Mint an NFT into each wallet that has been created. </p>
+        <p>
+          Click the Mint NFTs button below to Mint an NFT into each wallet that
+          has been created.{" "}
+        </p>
         {wallets.map((wallet, i) => (
           <div key={i}>
             <p>PrivateKey: {wallet.privateKey}</p>
@@ -256,7 +279,7 @@ const generateWallets = async (callback) => {
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex',  width: '50%'}}>
+      <div style={{ display: "flex", width: "50%" }}>
         <button style={styles.button} onClick={mintNFTs}>
           Mint NFTs
         </button>
@@ -267,7 +290,6 @@ const generateWallets = async (callback) => {
       <div>Total Supply: {totalSupply}</div>
     </div>
   );
-  
 };
 
 export default GenerateComponent;

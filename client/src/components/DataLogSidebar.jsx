@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchGlobalVars, updateActiveTokenCountInDatabase } from "../api";
+import { fetchGlobalVars, updateActiveTokenCountInDatabase } from "../client-api";
 
 // Custom useInterval hook for setting an interval
 function useInterval(callback, delay) {
