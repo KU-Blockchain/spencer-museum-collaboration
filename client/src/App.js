@@ -235,6 +235,16 @@ const appStyles = {
     flexGrow: 1, // This will make the sidebar take up the remaining space
     overflowY: "scroll", // Make the messages container scrollable
   },
+  variableContainer: {
+    width: "90%",
+    maxHeight: "10vh",
+    position: "relative",
+    backgroundColor: "#e6f9ff",
+    padding: "20px",
+    fontFamily: "Courier New, monospace",
+    outline: "2px solid #000000",
+    lineHeight: "0.5"
+  }
 };
 
 export default App;
