@@ -5,6 +5,7 @@ import GenerateComponent from "./pages/GenerateComponent";
 import Loading from './components/Loading';
 import Timer from "./components/Timer";
 import About from "./pages/About";
+import './components/AppStyles.css'
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
@@ -165,6 +166,8 @@ const appStyles = {
     alignItems: "center",
     fontWeight: "bold",
     outline: "1px solid #000000",
+    fontFamily: "Courier New, monospace",
+    fontSize: '1.2rem',
   },
   contentContainer: {
     display: "flex",
@@ -172,6 +175,7 @@ const appStyles = {
     width: "100%",
     justifyContent: "center",
     alignItems: "flex-start",
+    fontFamily: "Courier New, monospace",
   },
   leftSection: {
     display: "flex",
@@ -239,6 +243,7 @@ const appStyles = {
     border: "none",
     fontWeight: "bold",
     outline: "2px solid #000000",
+    fontFamily: "Courier New, monospace",
   },
   sidebar: {
     maxHeight: "45vh",
@@ -246,6 +251,7 @@ const appStyles = {
     backgroundColor: "#e6f9ff",
     padding: "20px",
     fontFamily: "Courier New, monospace",
+    fontSize: '0.9rem',
     outline: "2px solid #000000",
     width: "90%",
     display: "flex",

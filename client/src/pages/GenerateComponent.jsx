@@ -100,7 +100,7 @@ const GenerateComponent = ({
     logMessage("Public Key: " + wallet.publicKey);
 
     const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
-    showLoading("Transaction pending...");
+    showLoading("Transaction pending");
     await sendTransaction(
       contract.methods.mintClaimNFT(wallet.address, tokenURI)
     );
