@@ -206,23 +206,11 @@ const GenerateComponent = ({
           </button>
         </div>
       </div>
-      <div>
-        <h3>Wallets: </h3>
-        <p>These are the generated wallets containing minted NFTs.</p>
-        {wallets.map((wallet, i) => (
-          <div key={i}>
-            <p>PrivateKey: {wallet.privateKey}</p>
-            <p>PublicKey: {wallet.publicKey}</p>
-            <p>Address: {wallet.address}</p>
-          </div>
-        ))}
-      </div>
       <div style={{ display: "flex", width: "50%" }}>
         <button style={styles.button} onClick={reset}>
           Reset
         </button>
       </div>
-      <div>Total Supply: {totalSupply}</div>
     </div>
   );
 };
