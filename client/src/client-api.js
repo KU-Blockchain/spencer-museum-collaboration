@@ -114,13 +114,3 @@ export async function updateGlobalVars(globalVars) {
   const updatedGlobalVars = await response.json();
   return updatedGlobalVars;
 }
-
-export const incrementActiveWalletCount = async () => {
-  const response = await fetch(
-    `${API_URL}/globalVars/incrementActiveWalletCount`,
-    {
-      method: "PATCH",
-    }
-  );
-  return response.json();
-};

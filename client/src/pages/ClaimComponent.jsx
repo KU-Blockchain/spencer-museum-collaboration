@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import claimNFTABI from "../ABI/ClaimNFT.json";
 import { saveClaimData } from "../client-api";
 
-const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
+const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoading, hideLoading }) => {
   const [userAddress, setUserAddress] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");
@@ -11,13 +11,24 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   const [connectedAddress, setConnectedAddress] = useState("");
 
   // Define claimNFTAddress
-  const claimNFTAddress = "0xcb3bd1b51331a4d2fcffc9faf1f72f332ed7dd3e";
+  const claimNFTAddress = "0x5104c25aa45c48774ea1f540913c8fdefe386606";
 
   // Define claimNFTContract
   const claimNFTContract = new web3.eth.Contract(
     claimNFTABI.abi,
     claimNFTAddress
   );
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage('');
+      }, 5000);
+
+      // Clear the timer when the component is unmounted or the error message changes
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
+
 
   const handleVerification = async () => {
     try {
@@ -46,9 +57,11 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   };
 
   const handleClaim = async (tokenId) => {
+    showLoading("Claiming NFT");
     let claimSuccessful = false;
 
     while (!claimSuccessful) {
+      showLoading("Validating claim");
       try {
         if (web3 && nftDetected) {
           const claimNFTContract = new web3.eth.Contract(
@@ -91,9 +104,8 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
 
           const timestamp = Date.now();
           await saveClaimData(userAddress, timestamp); // save to database
-
-          logMessage("Transaction hash: " + txReceipt.transactionHash);
-          logMessage("Land claimed");
+          hideLoading();
+          logMessage("Claim initiated");
           setNftDetected(false);
           claimSuccessful = true;
         } else {
@@ -125,6 +137,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   const transferFunds = async (tokenId) => {
     return new Promise(async (resolve, reject) => {
       try {
+        showLoading("Calculating gas fees");
         // Estimate gas required for the NFT claim transaction
         const gasLimit = await contract.methods
           .claimLand(tokenId, userAddress)
@@ -152,16 +165,14 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
           gasPrice: web3.utils.toHex(gasPrice),
           nonce: web3.utils.toHex(nonce),
         };
-
+        showLoading("Transferring necessary funds");
         const txHash = await window.ethereum.request({
           method: "eth_sendTransaction",
           params: [rawTransaction],
         });
-
-        logMessage("Transaction hash (transfer): " + txHash);
         console.log("Funds transferred");
+        hideLoading();
         logMessage("Amount transferred: " + web3.utils.toHex(bufferedMatic));
-
         // Wait for transaction confirmation
         web3.eth.getTransactionReceipt(txHash, (error, receipt) => {
           if (error) {
@@ -172,11 +183,14 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
         });
       } catch (error) {
         reject("Error transferring funds: " + error.message);
+        hideLoading();
       }
+      hideLoading();
     });
   };
 
   const handleClaimProcess = async () => {
+    showLoading("Initiating claim");
     logMessage("Claim Initiated...");
 
     const activeTokenCount = await claimNFTContract.methods
@@ -201,8 +215,9 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
         break;
       }
     }
-
+    
     await handleClaim(tokenId);
+    hideLoading();
   };
 
   return (
@@ -214,6 +229,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
         value={userAddress}
         onChange={(e) => setUserAddress(e.target.value)}
         style={styles.input}
+
       />
       <button onClick={handleVerification} style={styles.button}>
         Verify Wallet
@@ -226,6 +242,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
             value={publicKey}
             onChange={(e) => setPublicKey(e.target.value)}
             style={styles.input}
+            display ='block'
           />
           <input
             type="password"
@@ -233,13 +250,14 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
             value={privateKey}
             onChange={(e) => setPrivateKey(e.target.value)}
             style={styles.input}
+            display ='block'
           />
           <button
             onClick={handleClaimProcess}
             style={styles.button}
             disabled={!nftDetected}
           >
-            Claim Land
+            Claim
           </button>
         </>
       )}

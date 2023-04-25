@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   fetchGlobalVars,
   updateActiveTokenCountInDatabase,
@@ -24,26 +24,18 @@ function useInterval(callback, delay) {
 }
 
 const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
+  const messagesContainerRef = React.useRef();
+
   const [displayedMessages, setDisplayedMessages] = useState([
     "Logged messages will appear here: ",
   ]);
-  /*
-  const messagesContainerStyle = {
-    flex: 1, // Take up remaining space
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    overflowY: "auto", // Make the messages container scrollable
-    maxHeight: `calc(100% - GLOBAL_VARS_HEIGHT)`, // Replace GLOBAL_VARS_HEIGHT with the height of the global variables box
-  };
 
-*/
   const [messageQueue, setMessageQueue] = useState(messages);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [globalVars, setGlobalVars] = useState({
-    ActiveNFTCount: 0,
-    ActiveWalletCount: 0,
-    ClaimedNFTCount: 0,
+    ActiveNFTCount: "",
+    ActiveWalletCount: "",
+    ClaimedNFTCount: "",
   });
 
   async function getActiveTokenCountFromContract() {
@@ -78,6 +70,15 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
 
     updateTokenCountInDatabase();
   }, [contract]);
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
+      });
+    }
+  }, [displayedMessages]);
 
   useEffect(() => {
     const fetchAndSetGlobalVars = async () => {
@@ -115,42 +116,45 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
 
   return (
     <>
-    <div
-      style={{
-        ...styles.sidebar,
-      }}
-    >
       {/* Add a box to display the global variables */}
       <div
         style={{
-          border: "1px solid black",
-          padding: "1rem",
-          marginBottom: "1rem",
-          flexShrink: 0, // Prevent shrinking of the global variables box
+          ...styles.variableContainer,
+          
         }}
       >
-        <p>Active NFT Count: {globalVars.ActiveNFTCount}</p>
-        <p>Active Wallet Count: {globalVars.ActiveWalletCount}</p>
-        <p>Claimed NFT Count: {globalVars.ClaimedNFTCount}</p>
+        <p>
+          <strong>Active NFT Count: {globalVars.ActiveNFTCount}</strong>
+        </p>
+        <p>
+          <strong>Active Wallet Count: {globalVars.ActiveWalletCount}</strong>
+        </p>
+        <p>
+          <strong>Claimed NFT Count: {globalVars.ClaimedNFTCount}</strong>
+        </p>
       </div>
       <div
         style={{
-           // Adjust the height value as needed
-          height: "100%",
-           display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-         // overflowY: "auto", // Make the messages container scrollable
-          padding: "1rem",
+          ...styles.sidebar,
         }}
       >
-        {displayedMessages.map((message, index) => (
-          <p key={index}>{message}</p>
-        ))}
+        <div
+          ref={messagesContainerRef}
+          style={{
+            // Adjust the height value as needed
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            
+          }}
+        >
+          {displayedMessages.map((message, index) => (
+            <p key={index}>{message}</p>
+          ))}
+        </div>
       </div>
-    </div>
     </>
-    
   );
 };
 

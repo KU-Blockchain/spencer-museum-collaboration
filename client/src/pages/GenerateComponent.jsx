@@ -6,7 +6,6 @@ import {
   updateData,
   resetGlobalVars,
   resetDatabase,
-  incrementActiveWalletCount,
 } from "../client-api"; // Assuming the functions are in a file named 'api.js'
 
 const GenerateComponent = ({
@@ -16,6 +15,8 @@ const GenerateComponent = ({
   styles,
   logMessage,
   sendtoApp,
+  showLoading,
+  hideLoading
 }) => {
   const [numWallets, setNumWallets] = useState(1);
   const [totalSupply, setTotalSupply] = useState(0);
@@ -90,14 +91,16 @@ const GenerateComponent = ({
   };
 
   const generateWalletAndMintNFT = async () => {
+    showLoading("Generating wallet");
     setNumWallets((numWallets) => numWallets + 1);
     const wallet = ethers.Wallet.createRandom();
     logMessage("Generated wallet");
     logMessage("Address: " + wallet.address);
     logMessage("Private Key: " + wallet.privateKey);
     logMessage("Public Key: " + wallet.publicKey);
-
+    showLoading("Minting NFT");
     const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
+    showLoading("Transaction pending");
     await sendTransaction(
       contract.methods.mintClaimNFT(wallet.address, tokenURI)
     );
@@ -116,9 +119,9 @@ const GenerateComponent = ({
       claimed: false,
     };
     console.log("Calling createWallet for wallet:", walletData); // Add this console log
+    hideLoading();
     await createWallet(walletData);
     console.log("Created wallet in database: " + wallet.address);
-
     // Update ActiveNFTs and ClaimCount in the database
     await updateData(1);
   };
@@ -139,6 +142,7 @@ const GenerateComponent = ({
       return result;
     } catch (error) {
       console.error("Transaction failed:", error.message);
+      hideLoading();
       throw error;
     }
   };
@@ -151,19 +155,22 @@ const GenerateComponent = ({
 
     try {
       // Burn all NFTs
+      showLoading("Resetting");
       await sendTransaction(contract.methods.BurnReset());
       console.log("All NFTs have been burned.");
       logMessage("All NFTs have been burned.");
-
-      // Update the total supply
-      getTotalSupply(contract);
     } catch (error) {
       console.error("Error details:", error);
+      hideLoading();
     }
+    hideLoading();
     // Reset the database after burning all NFTs
     await resetDatabase();
     // Reset the global variables
     await resetGlobalVars();
+    
+    
+    logMessage("Reset complete!");
   };
 
   return (
@@ -203,23 +210,11 @@ const GenerateComponent = ({
           </button>
         </div>
       </div>
-      <div>
-        <h3>Wallets: </h3>
-        <p>These are the generated wallets containing minted NFTs.</p>
-        {wallets.map((wallet, i) => (
-          <div key={i}>
-            <p>PrivateKey: {wallet.privateKey}</p>
-            <p>PublicKey: {wallet.publicKey}</p>
-            <p>Address: {wallet.address}</p>
-          </div>
-        ))}
-      </div>
       <div style={{ display: "flex", width: "50%" }}>
         <button style={styles.button} onClick={reset}>
           Reset
         </button>
       </div>
-      <div>Total Supply: {totalSupply}</div>
     </div>
   );
 };
