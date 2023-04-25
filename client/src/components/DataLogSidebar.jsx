@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   fetchGlobalVars,
   updateActiveTokenCountInDatabase,
@@ -38,7 +38,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
     ClaimedNFTCount: "",
   });
 
-  async function getActiveTokenCountFromContract() {
+  const getActiveTokenCountFromContract = useCallback(async () =>{
     if (contract) {
       try {
         const activeTokenCount = await contract.methods.totalSupply().call();
@@ -51,7 +51,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
       }
     }
     return 0;
-  }
+  });
 
   useEffect(() => {
     setMessageQueue((prevQueue) => [
@@ -69,7 +69,9 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
     };
 
     updateTokenCountInDatabase();
-  }, [contract]);
+  }, [contract, getActiveTokenCountFromContract]);
+
+
   useEffect(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollIntoView({
@@ -120,7 +122,6 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
       <div
         style={{
           ...styles.variableContainer,
-          
         }}
       >
         <p>
@@ -146,7 +147,6 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
-            
           }}
         >
           {displayedMessages.map((message, index) => (
