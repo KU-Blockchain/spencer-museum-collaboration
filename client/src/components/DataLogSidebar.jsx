@@ -120,6 +120,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
       <div
         style={{
           ...styles.variableContainer,
+          
         }}
       >
         <p>
@@ -145,8 +146,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
-            // overflowY: "auto", // Make the messages container scrollable
-            padding: "1rem",
+            
           }}
         >
           {displayedMessages.map((message, index) => (

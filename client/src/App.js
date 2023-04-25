@@ -259,6 +259,7 @@ const appStyles = {
     fontFamily: "Courier New, monospace",
     fontSize: "0.9rem",
     outline: "2px solid #000000",
+    padding: "0.5rem",
     width: "90%",
     display: "flex",
     flexDirection: "column",
@@ -273,6 +274,7 @@ const appStyles = {
     fontFamily: "Courier New, monospace",
     outline: "2px solid #000000",
     lineHeight: "0.5",
+    padding: "0.5rem"
   },
 };
 
