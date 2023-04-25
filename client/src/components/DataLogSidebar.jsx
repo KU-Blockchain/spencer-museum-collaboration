@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   fetchGlobalVars,
   updateActiveTokenCountInDatabase,
@@ -24,20 +24,12 @@ function useInterval(callback, delay) {
 }
 
 const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
+  const messagesContainerRef = React.useRef();
+
   const [displayedMessages, setDisplayedMessages] = useState([
     "Logged messages will appear here: ",
   ]);
-  /*
-  const messagesContainerStyle = {
-    flex: 1, // Take up remaining space
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    overflowY: "auto", // Make the messages container scrollable
-    maxHeight: `calc(100% - GLOBAL_VARS_HEIGHT)`, // Replace GLOBAL_VARS_HEIGHT with the height of the global variables box
-  };
-
-*/
+  
   const [messageQueue, setMessageQueue] = useState(messages);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [globalVars, setGlobalVars] = useState({
@@ -78,6 +70,16 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
 
     updateTokenCountInDatabase();
   }, [contract]);
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest",
+      });
+    }
+  }, [displayedMessages]);
+  
 
   useEffect(() => {
     const fetchAndSetGlobalVars = async () => {
@@ -134,6 +136,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
         <p>Claimed NFT Count: {globalVars.ClaimedNFTCount}</p>
       </div>
       <div
+        ref={messagesContainerRef}
         style={{
            // Adjust the height value as needed
           height: "100%",
