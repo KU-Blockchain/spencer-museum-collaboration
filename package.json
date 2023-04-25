@@ -4,5 +4,6 @@
   "main": "index.js",
   "repository": "https://github.com/KU-Blockchain/spencer-museum-collaboration.git",
   "author": "Emma Nasseri <enasseri02@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {}
 }

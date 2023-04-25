@@ -17,6 +17,27 @@ export async function createWallet(walletData) {
     const data = await response.json();
     return data;
   }
+  // client-api.js
+
+export const saveClaimData = async (walletAddress, timestamp) => {
+    console.log("sending claim data to server:", walletAddress, timestamp);
+    const response = await fetch(`${API_URL}/claim`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ walletAddress, timestamp }),
+    });
+  
+    if (!response.ok) {
+      console.error("Error saving claim data:", response.statusText);
+      throw new Error(response.statusText);
+    }
+  
+    const data = await response.json();
+    return data;
+  };
+  
   
 // Function to update ActiveNFTs and ClaimCount
 export async function updateData() {

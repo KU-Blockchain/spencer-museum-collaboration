@@ -2,12 +2,19 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
+import Timer from "./components/Timer";
 import About from "./pages/About";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
-
+import io from 'socket.io-client';
+const socket = io('http://localhost:5001', {
+  withCredentials: true,
+  extraHeaders: {
+    'my-custom-header': 'abcd'
+  }
+});
 
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
@@ -15,7 +22,6 @@ const App = () => {
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
   const [data, setData] = useState(0);
-  
 
   useEffect(() => {
     const connectMetamask = async () => {
@@ -36,7 +42,7 @@ const App = () => {
       // Set up the contract
       const contractInstance = new web3Instance.eth.Contract(
         ClaimNFTABI.abi,
-        "0x4b995f6a409d9ef489b5309cf38ff2f388c2f73b"
+        "0xcb3bd1b51331a4d2fcffc9faf1f72f332ed7dd3e"
       );
       setContract(contractInstance);
     };
@@ -92,19 +98,24 @@ const App = () => {
                 <Route
                   path="/claim"
                   element={
-                    <ClaimComponent
-                      styles={appStyles}
-                      logMessage={logMessage}
-                      web3={web3}
-                      contract={contract}
-                      account={account}
-                    />
+                    web3 ? (
+                      <ClaimComponent
+                        styles={appStyles}
+                        logMessage={logMessage}
+                        web3={web3}
+                        contract={contract}
+                        account={account}
+                      />
+                    ) : (
+                      <p>Loading...</p>
+                    )
                   }
                 />
               </Routes>
             </div>
           </div>
           <div style={appStyles.rightSection}>
+          <Timer />
             <MovingCircles styles={appStyles} numcircles={data} />
             <DataLogSidebar
               styles={appStyles}
@@ -149,12 +160,14 @@ const appStyles = {
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
+    maxHeight: "calc(100vh - 100px)", 
   },
   rightSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
+    maxHeight: "calc(100vh - 100px)", 
   },
   navContainer: {
     display: "flex",
@@ -210,14 +223,17 @@ const appStyles = {
     outline: "2px solid #000000",
   },
   sidebar: {
+    maxHeight: "45vh",
     position: "relative",
-    width: "25%",
-    backgroundColor: "#e6f9ff" /* lighter shade of blue */,
+    backgroundColor: "#e6f9ff",
     padding: "20px",
-    fontFamily: "Courier New, monospace" /* font used in programming */,
+    fontFamily: "Courier New, monospace",
     outline: "2px solid #000000",
-    overflow: "scroll",
-    resize: "none",
+    width: "90%",
+    display: "flex",
+    flexDirection: "column",
+    flexGrow: 1, // This will make the sidebar take up the remaining space
+    overflowY: "scroll", // Make the messages container scrollable
   },
 };
 

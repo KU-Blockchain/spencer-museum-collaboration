@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import claimNFTABI from "../ABI/ClaimNFT.json";
+import { saveClaimData } from "../client-api";
 
 const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   const [userAddress, setUserAddress] = useState("");
@@ -10,19 +11,18 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   const [connectedAddress, setConnectedAddress] = useState("");
 
   // Define claimNFTAddress
-  const claimNFTAddress = "0x4b995f6a409d9ef489b5309cf38ff2f388c2f73b";
+  const claimNFTAddress = "0xcb3bd1b51331a4d2fcffc9faf1f72f332ed7dd3e";
 
   // Define claimNFTContract
   const claimNFTContract = new web3.eth.Contract(
     claimNFTABI.abi,
     claimNFTAddress
   );
-  
+
   const handleVerification = async () => {
     try {
       if (web3 && account) {
         setConnectedAddress(account);
-        
 
         // Check for the NFT
         const balance = await claimNFTContract.methods
@@ -46,56 +46,79 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   };
 
   const handleClaim = async (tokenId) => {
-    try {
-      if (web3 && nftDetected) {
-        const claimNFTContract = new web3.eth.Contract(
-          claimNFTABI.abi,
-          claimNFTAddress
-        );
+    let claimSuccessful = false;
 
-        // Estimate the gas required for the transaction
-        const gasLimit = await claimNFTContract.methods
-          .claimLand(tokenId, userAddress)
-          .estimateGas({ from: userAddress });
+    while (!claimSuccessful) {
+      try {
+        if (web3 && nftDetected) {
+          const claimNFTContract = new web3.eth.Contract(
+            claimNFTABI.abi,
+            claimNFTAddress
+          );
 
-        // Get the current gas price
-        const gasPrice = await web3.eth.getGasPrice();
-        logMessage("Gas limit: " + gasLimit);
+          // Estimate the gas required for the transaction
+          const gasLimit = await claimNFTContract.methods
+            .claimLand(tokenId, userAddress)
+            .estimateGas({ from: userAddress });
 
-        const txData = claimNFTContract.methods
-          .claimLand(tokenId, userAddress)
-          .encodeABI();
+          // Get the current gas price
+          const gasPrice = await web3.eth.getGasPrice();
+          logMessage("Gas limit: " + gasLimit);
 
-        const nonce = await web3.eth.getTransactionCount(userAddress);
-        const rawTransaction = {
-          from: connectedAddress,
-          to: claimNFTAddress,
-          value: "0x0",
-          gasLimit: web3.utils.toHex(gasLimit),
-          gasPrice: web3.utils.toHex(gasPrice),
-          nonce: web3.utils.toHex(nonce),
-          data: txData,
-        };
+          const txData = claimNFTContract.methods
+            .claimLand(tokenId, userAddress)
+            .encodeABI();
 
-        const signedTx = await web3.eth.accounts.signTransaction(
-          rawTransaction,
-          privateKey
-        );
+          const nonce = await web3.eth.getTransactionCount(userAddress);
+          const rawTransaction = {
+            from: connectedAddress,
+            to: claimNFTAddress,
+            value: "0x0",
+            gasLimit: web3.utils.toHex(gasLimit),
+            gasPrice: web3.utils.toHex(gasPrice),
+            nonce: web3.utils.toHex(nonce),
+            data: txData,
+          };
 
-        const txReceipt = await web3.eth.sendSignedTransaction(
-          signedTx.rawTransaction
-        );
+          const signedTx = await web3.eth.accounts.signTransaction(
+            rawTransaction,
+            privateKey
+          );
 
-        logMessage("Transaction hash: " + txReceipt.transactionHash);
-        logMessage("Land claimed");
-        setNftDetected(false);
-      } else {
-        setErrorMessage(
-          "Please verify the wallet and ensure the NFT is detected"
-        );
+          const txReceipt = await web3.eth.sendSignedTransaction(
+            signedTx.rawTransaction
+          );
+
+          const timestamp = Date.now();
+          await saveClaimData(userAddress, timestamp); // save to database
+
+          logMessage("Transaction hash: " + txReceipt.transactionHash);
+          logMessage("Land claimed");
+          setNftDetected(false);
+          claimSuccessful = true;
+        } else {
+          setErrorMessage(
+            "Please verify the wallet and ensure the NFT is detected"
+          );
+          break;
+        }
+      } catch (error) {
+        if (error.message.includes("insufficient funds")) {
+          logMessage("Error: Insufficient funds, transferring more...");
+          setErrorMessage("Error: Insufficient funds, transferring more...");
+          try {
+            await transferFunds(tokenId);
+          } catch (transferError) {
+            logMessage("Error: " + transferError.message);
+            setErrorMessage("Error: " + transferError.message);
+            break;
+          }
+        } else {
+          logMessage("Error: " + error.message);
+          setErrorMessage("Error: " + error.message);
+          break;
+        }
       }
-    } catch (error) {
-      setErrorMessage(error.message);
     }
   };
 
@@ -179,14 +202,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
       }
     }
 
-    try {
-      logMessage("Token ID: " + tokenId);
-      await transferFunds(tokenId);
-      await handleClaim(tokenId);
-    } catch (error) {
-      logMessage("Error: " + error.message);
-      setErrorMessage("Error: " + error.message);
-    }
+    await handleClaim(tokenId);
   };
 
   return (
