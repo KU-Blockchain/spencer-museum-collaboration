@@ -73,7 +73,7 @@ const GenerateComponent = ({
 
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
-
+*/
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
     newEmailInputs[index] = value;
@@ -84,7 +84,7 @@ const GenerateComponent = ({
     const emailRegex = /^\S+@\S+\.\S+$/;
     return emailInputs.every((email) => emailRegex.test(email));
   };
-  */
+  
 
   const generateWalletAndMintNFT = async () => {
     showLoading("Generating wallet");
