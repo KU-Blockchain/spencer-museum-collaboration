@@ -61,6 +61,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
     let claimSuccessful = false;
 
     while (!claimSuccessful) {
+      showLoading("Validating claim");
       try {
         if (web3 && nftDetected) {
           const claimNFTContract = new web3.eth.Contract(
@@ -102,8 +103,8 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
           );
 
           const timestamp = Date.now();
-          hideLoading();
           await saveClaimData(userAddress, timestamp); // save to database
+          hideLoading();
           logMessage("Claim initiated");
           setNftDetected(false);
           claimSuccessful = true;
@@ -169,8 +170,6 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
           method: "eth_sendTransaction",
           params: [rawTransaction],
         });
-
-        logMessage("Transaction hash (transfer): " + txHash);
         console.log("Funds transferred");
         hideLoading();
         logMessage("Amount transferred: " + web3.utils.toHex(bufferedMatic));

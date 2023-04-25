@@ -14,6 +14,7 @@ const Timer = ({
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [intervalId, setIntervalId] = useState(null);
 
+
   const fetchClaims = async () => {
     try {
       const response = await fetch("http://localhost:5001/claims");
@@ -26,10 +27,10 @@ const Timer = ({
   };
 
   const burnNFTs = async (contract, walletAddresses) => {
-    if (!contract) {
+    /*if (!contract) {
       console.log("Contract not found. Check MetaMask connection.");
       return;
-    }
+    }*/
 
     try {
       const accounts = await window.ethereum.request({
@@ -37,12 +38,10 @@ const Timer = ({
       });
       const fromAddress = accounts[0]; // Assuming the first address is the one you want to use
 
-      /*await contract.methods
+      await contract.methods
         .burnSpecificNFTs(walletAddresses)
-        .send({ from: fromAddress }); // Add the 'from' field here
-
-*/        await contract.methods
-        .burnSpecificNFTs(walletAddresses)
+       // .send({ from:  }); // Add the 'from' field here
+      
       console.log("Specified NFTs have been burned.");
     } catch (error) {
       console.error("Error details:", error);
@@ -53,10 +52,11 @@ const Timer = ({
     const claims = await fetchClaims();
     const claimsCount = claims.length;
 
-    const threshold = 3;
+    const threshold = 6;
 
     if (claimsCount <= threshold) {
       const walletAddresses = claims.map((claim) => claim.walletAddress);
+      console.log("Contract prop value:", contract);
       await burnNFTs(contract, walletAddresses);
     } else {
       console.log("Threshold amount exceeded");
@@ -102,8 +102,9 @@ const Timer = ({
   return (
     <div>
       {timeRemaining !== null && (
-        <div><p fontSize="2.0rem">
-          Time remaining: <strong>{formatTime(timeRemaining)}</strong>
+        <div>
+          <p fontSize="2.0rem">
+            Time remaining: <strong>{formatTime(timeRemaining)}</strong>
           </p>
         </div>
       )}

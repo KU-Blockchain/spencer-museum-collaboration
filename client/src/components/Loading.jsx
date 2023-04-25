@@ -45,6 +45,7 @@ const Loading = ({ message }) => {
         color: '#fff',
         fontSize: '1.2rem',
         fontFamily: "Courier New, monospace",
+        fontweight: "bold",
       },
     };
 
