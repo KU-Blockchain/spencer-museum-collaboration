@@ -160,12 +160,14 @@ const appStyles = {
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
+    maxHeight: "calc(100vh - 100px)", 
   },
   rightSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
+    maxHeight: "calc(100vh - 100px)", 
   },
   navContainer: {
     display: "flex",
@@ -221,14 +223,17 @@ const appStyles = {
     outline: "2px solid #000000",
   },
   sidebar: {
+    maxHeight: "45vh",
     position: "relative",
-    width: "25%",
-    backgroundColor: "#e6f9ff" /* lighter shade of blue */,
+    backgroundColor: "#e6f9ff",
     padding: "20px",
-    fontFamily: "Courier New, monospace" /* font used in programming */,
+    fontFamily: "Courier New, monospace",
     outline: "2px solid #000000",
-    overflow: "scroll",
-    resize: "none",
+    width: "90%",
+    display: "flex",
+    flexDirection: "column",
+    flexGrow: 1, // This will make the sidebar take up the remaining space
+    overflowY: "scroll", // Make the messages container scrollable
   },
 };
 

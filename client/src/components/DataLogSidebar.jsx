@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { fetchGlobalVars, updateActiveTokenCountInDatabase } from "../client-api";
+import {
+  fetchGlobalVars,
+  updateActiveTokenCountInDatabase,
+} from "../client-api";
 
 // Custom useInterval hook for setting an interval
 function useInterval(callback, delay) {
@@ -20,11 +23,21 @@ function useInterval(callback, delay) {
   }, [delay]);
 }
 
-const DataLogSidebar = ({  web3, contract, account,styles, messages }) => {
+const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
   const [displayedMessages, setDisplayedMessages] = useState([
     "Logged messages will appear here: ",
   ]);
+  /*
+  const messagesContainerStyle = {
+    flex: 1, // Take up remaining space
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    overflowY: "auto", // Make the messages container scrollable
+    maxHeight: `calc(100% - GLOBAL_VARS_HEIGHT)`, // Replace GLOBAL_VARS_HEIGHT with the height of the global variables box
+  };
 
+*/
   const [messageQueue, setMessageQueue] = useState(messages);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [globalVars, setGlobalVars] = useState({
@@ -39,12 +52,14 @@ const DataLogSidebar = ({  web3, contract, account,styles, messages }) => {
         const activeTokenCount = await contract.methods.totalSupply().call();
         return activeTokenCount;
       } catch (error) {
-        console.error('Error fetching active token count from contract:', error);
+        console.error(
+          "Error fetching active token count from contract:",
+          error
+        );
       }
     }
     return 0;
   }
-  
 
   useEffect(() => {
     setMessageQueue((prevQueue) => [
@@ -56,31 +71,29 @@ const DataLogSidebar = ({  web3, contract, account,styles, messages }) => {
     const updateTokenCountInDatabase = async () => {
       // Get the active token count from the smart contract
       const activeTokenCount = await getActiveTokenCountFromContract();
-  
+
       // Update the active token count in the database
       await updateActiveTokenCountInDatabase(activeTokenCount);
-  
     };
-  
+
     updateTokenCountInDatabase();
   }, [contract]);
-  
 
-useEffect(() => {
-  const fetchAndSetGlobalVars = async () => {
-    const fetchedGlobalVars = await fetchGlobalVars();
-    if (fetchedGlobalVars) {
-      setGlobalVars(fetchedGlobalVars);
-    }
-  };
+  useEffect(() => {
+    const fetchAndSetGlobalVars = async () => {
+      const fetchedGlobalVars = await fetchGlobalVars();
+      if (fetchedGlobalVars) {
+        setGlobalVars(fetchedGlobalVars);
+      }
+    };
 
-  const intervalId = setInterval(() => {
-    fetchAndSetGlobalVars();
-  }, 7000); // Update the global variables every 7 seconds
+    const intervalId = setInterval(() => {
+      fetchAndSetGlobalVars();
+    }, 7000); // Update the global variables every 7 seconds
 
-  // Cleanup the interval when the component unmounts
-  return () => clearInterval(intervalId);
-}, []); // Keep the dependency array empty
+    // Cleanup the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, []); // Keep the dependency array empty
 
   useInterval(() => {
     if (currentMessageIndex < messageQueue.length) {
@@ -101,14 +114,10 @@ useEffect(() => {
   }, 50); // Adjust the typing speed by changing this value (milliseconds)
 
   return (
+    <>
     <div
       style={{
         ...styles.sidebar,
-        /*position: "fixed",*/
-        width: "90%",
-        height: "20%",
-        overflow: "scroll",
-        resize: "none",
       }}
     >
       {/* Add a box to display the global variables */}
@@ -117,16 +126,31 @@ useEffect(() => {
           border: "1px solid black",
           padding: "1rem",
           marginBottom: "1rem",
+          flexShrink: 0, // Prevent shrinking of the global variables box
         }}
       >
         <p>Active NFT Count: {globalVars.ActiveNFTCount}</p>
         <p>Active Wallet Count: {globalVars.ActiveWalletCount}</p>
         <p>Claimed NFT Count: {globalVars.ClaimedNFTCount}</p>
       </div>
-      {displayedMessages.map((message, index) => (
-        <p key={index}>{message}</p>
-      ))}
+      <div
+        style={{
+           // Adjust the height value as needed
+          height: "100%",
+           display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+         // overflowY: "auto", // Make the messages container scrollable
+          padding: "1rem",
+        }}
+      >
+        {displayedMessages.map((message, index) => (
+          <p key={index}>{message}</p>
+        ))}
+      </div>
     </div>
+    </>
+    
   );
 };
 
