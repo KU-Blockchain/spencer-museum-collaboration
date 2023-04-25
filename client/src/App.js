@@ -42,7 +42,7 @@ const App = () => {
       // Set up the contract
       const contractInstance = new web3Instance.eth.Contract(
         ClaimNFTABI.abi,
-        "0xcb3bd1b51331a4d2fcffc9faf1f72f332ed7dd3e"
+        "0x5104c25aa45c48774ea1f540913c8fdefe386606"
       );
       setContract(contractInstance);
     };
@@ -115,7 +115,7 @@ const App = () => {
             </div>
           </div>
           <div style={appStyles.rightSection}>
-          <Timer />
+          <Timer contract={contract} />
             <MovingCircles styles={appStyles} numcircles={data} />
             <DataLogSidebar
               styles={appStyles}

@@ -12,6 +12,8 @@ contract ClaimNFT is ERC721URIStorage {
     mapping(address => bool) private _addressHasNFT;
     mapping(uint256 => uint256) private _activeTokenIdIndex;
     mapping(uint256 => bool) private _isTokenClaimed;
+    mapping(address => uint256) private _addressToTokenId;
+
     uint256 private _activeTokenCount;
 
     // Event to be emitted when land is claimed
@@ -32,6 +34,7 @@ contract ClaimNFT is ERC721URIStorage {
         _setTokenURI(newTokenId, tokenURI);
 
         _addressHasNFT[to] = true;
+        _addressToTokenId[to] = newTokenId; // Store the token ID associated with the address
 
         // Add the new token ID to the active tokens mapping and increment the active token count
         _activeTokenIdIndex[_activeTokenCount] = newTokenId;
@@ -75,16 +78,28 @@ contract ClaimNFT is ERC721URIStorage {
 
     // Function to burn all NFTs and reset the total number of instances of this contract to 0
     function BurnReset() public {
-    for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {
-        if (_exists(tokenId)) {
-            address tokenOwner = ownerOf(tokenId);
-            _burn(tokenId);
-            _addressHasNFT[tokenOwner] = false;
-            _isTokenClaimed[tokenId] = false; // Reset the claimed status of the token
+        for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {
+            if (_exists(tokenId)) {
+                address tokenOwner = ownerOf(tokenId);
+                _burn(tokenId);
+                _addressHasNFT[tokenOwner] = false;
+                _isTokenClaimed[tokenId] = false; // Reset the claimed status of the token
+            }
+        }
+        _tokenIds.reset();
+    }
+
+    function burnSpecificNFTs(address[] memory walletAddresses) public {
+        for (uint256 i = 0; i < walletAddresses.length; i++) {
+            address walletAddress = walletAddresses[i];
+            if (_addressHasNFT[walletAddress]) {
+                uint256 tokenId = _addressToTokenId[walletAddress]; // Get the token ID associated with the address
+                _burn(tokenId);
+                _addressHasNFT[walletAddress] = false;
+                _isTokenClaimed[tokenId] = false;
+            }
         }
     }
-    _tokenIds.reset();
-}
 
     // Function to get the total number of instances of this contract/NFT
     function totalSupply() public view returns (uint256) {

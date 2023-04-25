@@ -11,7 +11,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
   const [connectedAddress, setConnectedAddress] = useState("");
 
   // Define claimNFTAddress
-  const claimNFTAddress = "0xcb3bd1b51331a4d2fcffc9faf1f72f332ed7dd3e";
+  const claimNFTAddress = "0x5104c25aa45c48774ea1f540913c8fdefe386606";
 
   // Define claimNFTContract
   const claimNFTContract = new web3.eth.Contract(
