@@ -16,6 +16,8 @@ const GenerateComponent = ({
   styles,
   logMessage,
   sendtoApp,
+  showLoading,
+  hideLoading
 }) => {
   const [numWallets, setNumWallets] = useState(1);
   const [totalSupply, setTotalSupply] = useState(0);
@@ -98,6 +100,7 @@ const GenerateComponent = ({
     logMessage("Public Key: " + wallet.publicKey);
 
     const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
+    showLoading("Transaction pending...");
     await sendTransaction(
       contract.methods.mintClaimNFT(wallet.address, tokenURI)
     );
@@ -118,7 +121,7 @@ const GenerateComponent = ({
     console.log("Calling createWallet for wallet:", walletData); // Add this console log
     await createWallet(walletData);
     console.log("Created wallet in database: " + wallet.address);
-
+    hideLoading();
     // Update ActiveNFTs and ClaimCount in the database
     await updateData(1);
   };

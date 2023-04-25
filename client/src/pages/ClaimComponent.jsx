@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import claimNFTABI from "../ABI/ClaimNFT.json";
 import { saveClaimData } from "../client-api";
 
-const ClaimComponent = ({ web3, contract, account, styles, logMessage }) => {
+const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoading, hideLoading }) => {
   const [userAddress, setUserAddress] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");

@@ -2,6 +2,7 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
+import Loading from './components/Loading';
 import Timer from "./components/Timer";
 import About from "./pages/About";
 import React, { useState, useEffect } from "react";
@@ -22,6 +23,9 @@ const App = () => {
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
   const [data, setData] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  
 
   useEffect(() => {
     const connectMetamask = async () => {
@@ -52,6 +56,15 @@ const App = () => {
   const generateToApp = (childdata) => {
     setData(childdata);
   };
+  const showLoading = (message) => {
+    setLoadingMessage(message);
+    setIsLoading(true);
+  };
+  
+  const hideLoading = () => {
+    setIsLoading(false);
+  };
+  
 
   const logMessage = (message) => {
     console.log(message);
@@ -60,6 +73,7 @@ const App = () => {
 
   return (
     <Router>
+      {isLoading && <Loading message={loadingMessage} />}
       <div style={appStyles.container}>
         <header style={appStyles.header}>
           From the University of Kansas Blockchain Institute in collaboration
@@ -92,6 +106,8 @@ const App = () => {
                       web3={web3}
                       contract={contract}
                       account={account}
+                      showLoading={showLoading}
+                      hideLoading={hideLoading}
                     />
                   }
                 />
@@ -105,6 +121,8 @@ const App = () => {
                         web3={web3}
                         contract={contract}
                         account={account}
+                        showLoading={showLoading}
+                        hideLoading={hideLoading}
                       />
                     ) : (
                       <p>Loading...</p>
