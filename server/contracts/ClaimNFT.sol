@@ -11,6 +11,9 @@ contract ClaimNFT is ERC721URIStorage {
     // Mapping to track if an address already has an NFT
     mapping(address => bool) private _addressHasNFT;
     mapping(uint256 => uint256) private _activeTokenIdIndex;
+    mapping(uint256 => bool) private _isTokenClaimed;
+    mapping(address => uint256) private _addressToTokenId;
+
     uint256 private _activeTokenCount;
 
     // Event to be emitted when land is claimed
@@ -31,6 +34,7 @@ contract ClaimNFT is ERC721URIStorage {
         _setTokenURI(newTokenId, tokenURI);
 
         _addressHasNFT[to] = true;
+        _addressToTokenId[to] = newTokenId; // Store the token ID associated with the address
 
         // Add the new token ID to the active tokens mapping and increment the active token count
         _activeTokenIdIndex[_activeTokenCount] = newTokenId;
@@ -45,34 +49,32 @@ contract ClaimNFT is ERC721URIStorage {
     }
 
     function claimLand(uint256 tokenId, address sender) public {
-        // Check if the sender is the NFT owner
         require(
             ownerOf(tokenId) == sender,
             "Only the owner can claim the land."
         );
+        require(
+            !_isTokenClaimed[tokenId],
+            "This token has already been claimed."
+        );
 
         emit LandClaimed(sender, tokenId);
 
-        // Remove the token ID from the active tokens mapping and update the active token count
-        uint256 burnedTokenIndex = _activeTokenIdIndex[tokenId];
-        uint256 lastActiveTokenId = _activeTokenIdIndex[_activeTokenCount - 1];
-        _activeTokenIdIndex[burnedTokenIndex] = lastActiveTokenId;
-        _activeTokenIdIndex[lastActiveTokenId] = burnedTokenIndex;
-        delete _activeTokenIdIndex[_activeTokenCount - 1];
-        _activeTokenCount -= 1;
+        _isTokenClaimed[tokenId] = true;
+    }
 
-        _burn(tokenId);
-        _addressHasNFT[sender] = false;
+    function isTokenClaimed(uint256 tokenId) public view returns (bool) {
+        return _isTokenClaimed[tokenId];
     }
 
     function activeTokenIdByIndex(uint256 index) public view returns (uint256) {
         require(index < _activeTokenCount, "Index out of range.");
         return _activeTokenIdIndex[index];
     }
+
     function activeTokenCount() public view returns (uint256) {
         return _activeTokenCount;
     }
-
 
     // Function to burn all NFTs and reset the total number of instances of this contract to 0
     function BurnReset() public {
@@ -81,9 +83,22 @@ contract ClaimNFT is ERC721URIStorage {
                 address tokenOwner = ownerOf(tokenId);
                 _burn(tokenId);
                 _addressHasNFT[tokenOwner] = false;
+                _isTokenClaimed[tokenId] = false; // Reset the claimed status of the token
             }
         }
         _tokenIds.reset();
+    }
+
+    function burnSpecificNFTs(address[] memory walletAddresses) public {
+        for (uint256 i = 0; i < walletAddresses.length; i++) {
+            address walletAddress = walletAddresses[i];
+            if (_addressHasNFT[walletAddress]) {
+                uint256 tokenId = _addressToTokenId[walletAddress]; // Get the token ID associated with the address
+                _burn(tokenId);
+                _addressHasNFT[walletAddress] = false;
+                _isTokenClaimed[tokenId] = false;
+            }
+        }
     }
 
     // Function to get the total number of instances of this contract/NFT

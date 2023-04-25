@@ -1,25 +1,27 @@
 import React, { useState, useCallback, useEffect } from "react";
-import Web3 from "web3";
-import ClaimNFTABI from "../ABI/ClaimNFT.json";
 import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
-import { createWallet, updateData, resetDatabase } from '../api'; // Assuming the functions are in a file named 'api.js'
+import {
+  createWallet,
+  updateData,
+  resetGlobalVars,
+  resetDatabase,
+} from "../client-api"; // Assuming the functions are in a file named 'api.js'
 
-
-
-const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
-  // eslint-disable-next-line no-unused-vars
+const GenerateComponent = ({
+  web3,
+  contract,
+  account,
+  styles,
+  logMessage,
+  sendtoApp,
+  showLoading,
+  hideLoading
+}) => {
   const [numWallets, setNumWallets] = useState(1);
-  // eslint-disable-next-line no-unused-vars
-  const [web3, setWeb3] = useState(null);
-  const [account, setAccount] = useState(null);
-  const [contract, setContract] = useState(null);
   const [totalSupply, setTotalSupply] = useState(0);
-  // eslint-disable-next-line no-unused-vars
-  const [pending, setPending] = useState(false); // New state for tracking pending status
   const [wallets, setWallets] = useState([]);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
-  
 
   // Add your EmailJS credentials here
   const emailjsUserId = "JMcPDIEBGca8QqOIV";
@@ -27,54 +29,33 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
   const emailjsServiceId = "service_js0tfmo";
 
   useEffect(() => {
-    const connectMetamask = async () => {
-      // Check if MetaMask is installed
-      if (!window.ethereum) {
-        console.log("MetaMask is not installed.");
-    
-        return;
-      }
-
-      // Connect MetaMask and enable accounts
-      const web3Instance = new Web3(window.ethereum);
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
+    setEmailInputs((prevEmailInputs) => {
+      const newEmailInputs = Array(numWallets).fill("");
+      prevEmailInputs.forEach((email, index) => {
+        newEmailInputs[index] = email;
       });
-      setWeb3(web3Instance);
-      setAccount(accounts[0]);
+      return newEmailInputs;
+    });
+  }, [numWallets]);
 
-      // Set up the contract
-      const contractInstance = new web3Instance.eth.Contract(
-        ClaimNFTABI.abi,
-        "0xf43b8348111bd93509b14ff718d3cc17ab0fb62f"
-      );
-      setContract(contractInstance);
-
-      // Fetch total supply of NFTs
-      getTotalSupply(contractInstance);
-    };
-    connectMetamask();
-  }, []);
-
-  //updates the total supply without having to refresh the page
   useEffect(() => {
     if (contract) {
       getTotalSupply(contract);
     }
   }, [contract]);
 
-  // New function to send emails
   const sendEmails = useCallback(async () => {
     console.log("wallets length in send emails: " + wallets.length);
-    
+
     const emailPromises = wallets.map((wallet, index) => {
       const emailData = {
+        address: wallet.address,
         privateKey: wallet.privateKey,
         publicKey: wallet.publicKey,
         address: wallet.address,
         to_email: emailInputs[index],
       };
-  
+
       return emailjs
         .send(emailjsServiceId, emailjsTemplateId, emailData, emailjsUserId)
         .then(
@@ -87,105 +68,62 @@ const GenerateComponent = ({ styles, logMessage, sendtoApp }) => {
           },
           (error) => {
             console.error("Email sending failed:", error);
+            console.log("Email not sent correctly");
           }
-        );
+        )
+        .catch(() => {
+          console.log("Email not sent correctly");
+        });
     });
-  
+
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
 
-  // New function to update email inputs
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
     newEmailInputs[index] = value;
     setEmailInputs(newEmailInputs);
   };
 
-  // New function to check if all email addresses are valid
   const allEmailsValid = () => {
     const emailRegex = /^\S+@\S+\.\S+$/;
     return emailInputs.every((email) => emailRegex.test(email));
   };
 
-  const generateWalletsAndSendEmails = async () => {
+  const generateWalletAndMintNFT = async () => {
+    showLoading("Generating wallet");
     setNumWallets((numWallets) => numWallets + 1);
-  
-    await generateWallets(async () => {
-      await sendEmails();
-      logMessage("Emails sent successfully");
-    });
-    sendtoApp(wallets.length);
-    logMessage("Wallets generated successfully");
-  
-    // Create wallet documents in the database
-    for (const wallet of wallets) {
-      const walletData = {
-        privateKey: wallet.privateKey,
-        publicKey: wallet.publicKey,
-        address: wallet.address,
-        email: emailInputs[wallets.indexOf(wallet)], // Get the corresponding email from emailInputs array
-        NFTstatus: false,
-        claimStatus: false,
-      };
-      console.log("Calling createWallet for wallet:", walletData); // Add this console log
-    await createWallet(walletData);
-    console.log("Created wallet in database: " + wallet.address);
-    }
-  };
-  
-  
-  
-  
-
-  // New function to generate a variable number of Ethereum wallets
-  // New function to generate a variable number of Ethereum wallets
-const generateWallets = async (callback) => {
-  const wallets = [];
-
-  for (let i = 0; i < numWallets; i++) {
     const wallet = ethers.Wallet.createRandom();
-    wallets.push({
-      privateKey: wallet.privateKey,
-      publicKey: wallet.publicKey,
-      address: wallet.address,
-    });
-    logMessage("Generated wallet " + (i + 1) + " of " + numWallets);
+    logMessage("Generated wallet");
     logMessage("Address: " + wallet.address);
     logMessage("Private Key: " + wallet.privateKey);
     logMessage("Public Key: " + wallet.publicKey);
-  }
+    showLoading("Minting NFT");
+    const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
+    showLoading("Transaction pending");
+    await sendTransaction(
+      contract.methods.mintClaimNFT(wallet.address, tokenURI)
+    );
+    logMessage("Successfully Minted NFT to " + wallet.address);
 
-  setWallets(wallets);
+    // Add the new wallet to the wallets state
+    setWallets((prevWallets) => [...prevWallets, wallet]);
 
-  callback();
-  
-};
-
-  
-  
-  // New function to mint NFTs into the generated paper wallets
-  const mintNFTs = async () => {
-    if (!contract || wallets.length === 0) {
-      console.log(
-        "Contract not found or no wallets available. Check MetaMask connection or generate wallets first."
-      );
-      return;
-    }
-
-    try {
-      console.log("wallets length: " + wallets.length);
-      for (const wallet of wallets) {
-        const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
-        await sendTransaction(
-          contract.methods.mintClaimNFT(wallet.address, tokenURI)
-        );
-        logMessage("Successfully Minted NFT to " + wallet.address );
-      }
-    } catch (error) {
-      console.error("Transaction failed:", error.message);
-    }
-      // Update ActiveNFTs and ClaimCount in the database
-    await updateData(wallets.length);
+    // Create wallet document in the database
+    const walletData = {
+      privateKey: wallet.privateKey,
+      publicKey: wallet.publicKey,
+      address: wallet.address,
+      email: emailInputs[wallets.length], // Get the corresponding email from emailInputs array
+      NFTstatus: true,
+      claimed: false,
+    };
+    console.log("Calling createWallet for wallet:", walletData); // Add this console log
+    hideLoading();
+    await createWallet(walletData);
+    console.log("Created wallet in database: " + wallet.address);
+    // Update ActiveNFTs and ClaimCount in the database
+    await updateData(1);
   };
 
   const getTotalSupply = async (contractInstance) => {
@@ -198,20 +136,18 @@ const generateWallets = async (callback) => {
   };
 
   const sendTransaction = async (transaction) => {
-    setPending(true);
     try {
       const result = await transaction.send({ from: account });
       console.log("Transaction successful:", result);
-      setPending(false);
       return result;
     } catch (error) {
       console.error("Transaction failed:", error.message);
-      setPending(false);
+      hideLoading();
       throw error;
     }
   };
 
-  const burnAll = async () => {
+  const reset = async () => {
     if (!contract) {
       console.log("Contract not found. Check MetaMask connection.");
       return;
@@ -219,29 +155,32 @@ const generateWallets = async (callback) => {
 
     try {
       // Burn all NFTs
+      showLoading("Resetting");
       await sendTransaction(contract.methods.BurnReset());
       console.log("All NFTs have been burned.");
       logMessage("All NFTs have been burned.");
-
-      // Update the total supply
-      getTotalSupply(contract);
     } catch (error) {
       console.error("Error details:", error);
+      hideLoading();
     }
+    hideLoading();
     // Reset the database after burning all NFTs
     await resetDatabase();
-
+    // Reset the global variables
+    await resetGlobalVars();
+    
+    
+    logMessage("Reset complete!");
   };
-
-  
 
   return (
     <div>
-      
       <h3>Enter emails: </h3>
-      <p>These are the email addresses where the wallets will be distributed.</p>
-      <div style={{ display: 'flex', flexDirection: 'row' }}>
-        <div style={{ display: 'flex', flexDirection: 'column'}}>
+      <p>
+        These are the email addresses where the wallets will be distributed.
+      </p>
+      <div style={{ display: "flex", flexDirection: "row" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {/* Add email input fields */}
           {Array.from({ length: numWallets }).map((_, index) => (
             <input
@@ -255,45 +194,29 @@ const generateWallets = async (callback) => {
         </div>
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: '2rem',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            marginLeft: "2rem",
           }}
         >
           <button
             style={styles.button}
-            onClick={generateWalletsAndSendEmails}
+            onClick={generateWalletAndMintNFT}
             disabled={!allEmailsValid()} // Disable button if not all emails are valid
           >
-            Generate Wallet
+            Generate Wallet and Mint NFT
           </button>
         </div>
       </div>
-      <div>
-        <h3>Wallets: </h3>
-        <p>Click the Mint NFTs button below to Mint an NFT into each wallet that has been created. </p>
-        {wallets.map((wallet, i) => (
-          <div key={i}>
-            <p>PrivateKey: {wallet.privateKey}</p>
-            <p>PublicKey: {wallet.publicKey}</p>
-            <p>Address: {wallet.address}</p>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex',  width: '50%'}}>
-        <button style={styles.button} onClick={mintNFTs}>
-          Mint NFTs
-        </button>
-        <button style={styles.button} onClick={burnAll}>
-          Burn All
+      <div style={{ display: "flex", width: "50%" }}>
+        <button style={styles.button} onClick={reset}>
+          Reset
         </button>
       </div>
-      <div>Total Supply: {totalSupply}</div>
     </div>
   );
-  
 };
 
 export default GenerateComponent;

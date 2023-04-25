@@ -2,18 +2,68 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
+import Loading from "./components/Loading";
+import Timer from "./components/Timer";
 import About from "./pages/About";
-import React, { useState } from "react";
+import "./components/AppStyles.css";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import Web3 from "web3";
+import ClaimNFTABI from "./ABI/ClaimNFT.json";
+import io from "socket.io-client";
+const socket = io("http://localhost:5001", {
+  withCredentials: true,
+  extraHeaders: {
+    "my-custom-header": "abcd",
+  },
+});
 
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
+  const [web3, setWeb3] = useState(null);
+  const [contract, setContract] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [data, setData] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
-  const [data,setData]=useState(0);
+  useEffect(() => {
+    const connectMetamask = async () => {
+      // Check if MetaMask is installed
+      if (!window.ethereum) {
+        console.log("MetaMask is not installed.");
+        return;
+      }
 
-  const generateToApp = (childdata) =>{
+      // Connect MetaMask and enable accounts
+      const web3Instance = new Web3(window.ethereum);
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      setWeb3(web3Instance);
+      setAccount(accounts[0]);
+
+      // Set up the contract
+      const contractInstance = new web3Instance.eth.Contract(
+        ClaimNFTABI.abi,
+        "0x5104c25aa45c48774ea1f540913c8fdefe386606"
+      );
+      setContract(contractInstance);
+    };
+    connectMetamask();
+  }, []);
+
+  const generateToApp = (childdata) => {
     setData(childdata);
-  }
+  };
+  const showLoading = (message) => {
+    setLoadingMessage(message);
+    setIsLoading(true);
+  };
+
+  const hideLoading = () => {
+    setIsLoading(false);
+  };
 
   const logMessage = (message) => {
     console.log(message);
@@ -22,6 +72,7 @@ const App = () => {
 
   return (
     <Router>
+      {isLoading && <Loading message={loadingMessage} />}
       <div style={appStyles.container}>
         <header style={appStyles.header}>
           From the University of Kansas Blockchain Institute in collaboration
@@ -51,24 +102,53 @@ const App = () => {
                       styles={appStyles}
                       logMessage={logMessage}
                       sendtoApp={generateToApp}
+                      web3={web3}
+                      contract={contract}
+                      account={account}
+                      showLoading={showLoading}
+                      hideLoading={hideLoading}
                     />
                   }
                 />
                 <Route
                   path="/claim"
                   element={
-                    <ClaimComponent
-                      styles={appStyles}
-                      logMessage={logMessage}
-                    />
+                    web3 ? (
+                      <ClaimComponent
+                        styles={appStyles}
+                        logMessage={logMessage}
+                        web3={web3}
+                        contract={contract}
+                        account={account}
+                        showLoading={showLoading}
+                        hideLoading={hideLoading}
+                      />
+                    ) : (
+                      <p>Loading...</p>
+                    )
                   }
                 />
               </Routes>
             </div>
           </div>
           <div style={appStyles.rightSection}>
+            <Timer
+              styles={appStyles}
+              logMessage={logMessage}
+              web3={web3}
+              contract={contract}
+              account={account}
+              showLoading={showLoading}
+              hideLoading={hideLoading}
+            />
             <MovingCircles styles={appStyles} numcircles={data} />
-            <DataLogSidebar styles={appStyles} messages={consoleLogMessages} />
+            <DataLogSidebar
+              styles={appStyles}
+              messages={consoleLogMessages}
+              web3={web3}
+              contract={contract}
+              account={account}
+            />
           </div>
         </div>
       </div>
@@ -92,6 +172,8 @@ const appStyles = {
     alignItems: "center",
     fontWeight: "bold",
     outline: "1px solid #000000",
+    fontFamily: "Courier New, monospace",
+    fontSize: "1.2rem",
   },
   contentContainer: {
     display: "flex",
@@ -99,18 +181,21 @@ const appStyles = {
     width: "100%",
     justifyContent: "center",
     alignItems: "flex-start",
+    fontFamily: "Courier New, monospace",
   },
   leftSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
+    maxHeight: "calc(100vh - 100px)",
   },
   rightSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
+    maxHeight: "calc(100vh - 100px)",
   },
   navContainer: {
     display: "flex",
@@ -164,18 +249,33 @@ const appStyles = {
     border: "none",
     fontWeight: "bold",
     outline: "2px solid #000000",
+    fontFamily: "Courier New, monospace",
+    margin: "1rem",
   },
   sidebar: {
+    maxHeight: "45vh",
     position: "relative",
-    width: "25%",
-    backgroundColor: "#e6f9ff", /* lighter shade of blue */
-    padding: "20px",
-    fontFamily: "Courier New, monospace", /* font used in programming */
+    backgroundColor: "#e6f9ff",
+    fontFamily: "Courier New, monospace",
+    fontSize: "0.9rem",
     outline: "2px solid #000000",
-    overflow: "scroll",
-    resize: "none",
-}
-
+    padding: "0.5rem",
+    width: "90%",
+    display: "flex",
+    flexDirection: "column",
+    flexGrow: 1, // This will make the sidebar take up the remaining space
+    overflowY: "scroll", // Make the messages container scrollable
+  },
+  variableContainer: {
+    width: "90%",
+    maxHeight: "10vh",
+    position: "relative",
+    backgroundColor: "#e6f9ff",
+    fontFamily: "Courier New, monospace",
+    outline: "2px solid #000000",
+    lineHeight: "0.5",
+    padding: "0.5rem"
+  },
 };
 
 export default App;
