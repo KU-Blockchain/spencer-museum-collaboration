@@ -54,6 +54,16 @@ app.use(express.json());
   res.send('Hello World!');
 });
 
+// Add this route below the existing routes
+app.get("/claims", async (req, res) => {
+  try {
+    const claims = await Claim.find({});
+    res.status(200).json(claims);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching claims", error });
+  }
+});
+
 app.put('/updateActiveTokenCount', async (req, res) => {
   const { activeTokenCount } = req.body;
 

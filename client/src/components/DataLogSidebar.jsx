@@ -33,9 +33,9 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
   const [messageQueue, setMessageQueue] = useState(messages);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [globalVars, setGlobalVars] = useState({
-    ActiveNFTCount: 0,
-    ActiveWalletCount: 0,
-    ClaimedNFTCount: 0,
+    ActiveNFTCount: "",
+    ActiveWalletCount: "",
+    ClaimedNFTCount: "",
   });
 
   async function getActiveTokenCountFromContract() {

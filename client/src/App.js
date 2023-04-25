@@ -2,20 +2,20 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
-import Loading from './components/Loading';
+import Loading from "./components/Loading";
 import Timer from "./components/Timer";
 import About from "./pages/About";
-import './components/AppStyles.css'
+import "./components/AppStyles.css";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
-import io from 'socket.io-client';
-const socket = io('http://localhost:5001', {
+import io from "socket.io-client";
+const socket = io("http://localhost:5001", {
   withCredentials: true,
   extraHeaders: {
-    'my-custom-header': 'abcd'
-  }
+    "my-custom-header": "abcd",
+  },
 });
 
 const App = () => {
@@ -25,8 +25,7 @@ const App = () => {
   const [account, setAccount] = useState(null);
   const [data, setData] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('');
-  
+  const [loadingMessage, setLoadingMessage] = useState("");
 
   useEffect(() => {
     const connectMetamask = async () => {
@@ -61,11 +60,10 @@ const App = () => {
     setLoadingMessage(message);
     setIsLoading(true);
   };
-  
+
   const hideLoading = () => {
     setIsLoading(false);
   };
-  
 
   const logMessage = (message) => {
     console.log(message);
@@ -134,7 +132,15 @@ const App = () => {
             </div>
           </div>
           <div style={appStyles.rightSection}>
-          <Timer contract={contract} />
+            <Timer
+              styles={appStyles}
+              logMessage={logMessage}
+              web3={web3}
+              contract={contract}
+              account={account}
+              showLoading={showLoading}
+              hideLoading={hideLoading}
+            />
             <MovingCircles styles={appStyles} numcircles={data} />
             <DataLogSidebar
               styles={appStyles}
@@ -167,7 +173,7 @@ const appStyles = {
     fontWeight: "bold",
     outline: "1px solid #000000",
     fontFamily: "Courier New, monospace",
-    fontSize: '1.2rem',
+    fontSize: "1.2rem",
   },
   contentContainer: {
     display: "flex",
@@ -182,14 +188,14 @@ const appStyles = {
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
-    maxHeight: "calc(100vh - 100px)", 
+    maxHeight: "calc(100vh - 100px)",
   },
   rightSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     width: "50%",
-    maxHeight: "calc(100vh - 100px)", 
+    maxHeight: "calc(100vh - 100px)",
   },
   navContainer: {
     display: "flex",
@@ -244,6 +250,7 @@ const appStyles = {
     fontWeight: "bold",
     outline: "2px solid #000000",
     fontFamily: "Courier New, monospace",
+    margin: "1rem",
   },
   sidebar: {
     maxHeight: "45vh",
@@ -251,7 +258,7 @@ const appStyles = {
     backgroundColor: "#e6f9ff",
     padding: "20px",
     fontFamily: "Courier New, monospace",
-    fontSize: '0.9rem',
+    fontSize: "0.9rem",
     outline: "2px solid #000000",
     width: "90%",
     display: "flex",
@@ -267,8 +274,8 @@ const appStyles = {
     padding: "20px",
     fontFamily: "Courier New, monospace",
     outline: "2px solid #000000",
-    lineHeight: "0.5"
-  }
+    lineHeight: "0.5",
+  },
 };
 
 export default App;
