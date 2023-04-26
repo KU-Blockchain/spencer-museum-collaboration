@@ -64,6 +64,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
       showLoading("Validating claim");
       try {
         if (web3 && nftDetected) {
+ /*
           const claimNFTContract = new web3.eth.Contract(
             claimNFTABI.abi,
             claimNFTAddress
@@ -91,12 +92,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
             gasPrice: web3.utils.toHex(gasPrice),
             nonce: web3.utils.toHex(nonce),
             data: txData,
-          };
-
-          const signedTx = await web3.eth.accounts.signTransaction(
-            rawTransaction,
-            privateKey
-          );
+          };*/
 
           const timestamp = Date.now();
           await saveClaimData(userAddress, timestamp); // save to database
@@ -153,6 +149,8 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
           .div(web3.utils.toBN(1e18));
 
         const nonce = await web3.eth.getTransactionCount(connectedAddress);
+
+        
         const rawTransaction = {
           from: connectedAddress,
           to: userAddress,
