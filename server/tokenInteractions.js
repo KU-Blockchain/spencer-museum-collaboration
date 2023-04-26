@@ -47,27 +47,58 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
   };
   
 
-const burnAllClaimNFTs = async () => {
-  try {
-    const transaction = await claimContract.methods.BurnReset().send({ from: wallet.address });
-    const receipt = await web3.eth.getTransactionReceipt(transaction.transactionHash);
-    return receipt;
-  } catch (error) {
-    console.error("Error in burnAllClaimNFTs:", error);
-    throw error;
-  }
-};
-
-const burnSpecificClaimNFTs = async (walletAddresses) => {
-  try {
-    const transaction = await claimContract.methods.burnSpecificNFTs(walletAddresses).send({ from: wallet.address });
-    const receipt = await web3.eth.getTransactionReceipt(transaction.transactionHash);
-    return receipt;
-  } catch (error) {
-    console.error("Error in burnSpecificClaimNFTs:", error);
-    throw error;
-  }
-};
+  const burnAllClaimNFTs = async () => {
+    try {
+      const gasPrice = await web3.eth.getGasPrice();
+      const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
+  
+      const txData = claimContract.methods.BurnReset().encodeABI();
+  
+      const transaction = {
+        from: wallet.address,
+        to: claimNFTAddress,
+        gas: await claimContract.methods.BurnReset().estimateGas({ from: wallet.address }),
+        gasPrice: gasPrice,
+        nonce: nonce,
+        data: txData,
+      };
+  
+      const signedTransaction = await wallet.signTransaction(transaction);
+      const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+  
+      return receipt;
+    } catch (error) {
+      console.error("Error in burnAllClaimNFTs:", error);
+      throw error;
+    }
+  };
+  
+  const burnSpecificClaimNFTs = async (walletAddresses) => {
+    try {
+      const gasPrice = await web3.eth.getGasPrice();
+      const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
+  
+      const txData = claimContract.methods.burnSpecificNFTs(walletAddresses).encodeABI();
+  
+      const transaction = {
+        from: wallet.address,
+        to: claimNFTAddress,
+        gas: await claimContract.methods.burnSpecificNFTs(walletAddresses).estimateGas({ from: wallet.address }),
+        gasPrice: gasPrice,
+        nonce: nonce,
+        data: txData,
+      };
+  
+      const signedTransaction = await wallet.signTransaction(transaction);
+      const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+  
+      return receipt;
+    } catch (error) {
+      console.error("Error in burnSpecificClaimNFTs:", error);
+      throw error;
+    }
+  };
+  
 
 module.exports = {
   mintClaimNFT,

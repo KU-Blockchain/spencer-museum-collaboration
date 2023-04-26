@@ -4,12 +4,10 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const cors = require("cors");
-require("dotenv").config();
-const {
-  mintClaimNFT,
+require('dotenv').config();
+const { mintClaimNFT,
   burnAllClaimNFTs,
-  burnSpecificClaimNFTs,
-} = require("./tokenInteractions");
+  burnSpecificClaimNFTs } = require("./tokenInteractions");
 
 const PORT = process.env.PORT || 5001;
 //const claimNFTAddress = '0x5104c25aa45c48774ea1f540913c8fdefe386606';
@@ -86,10 +84,11 @@ app.post("/mintClaimNFT", async (req, res) => {
 app.post("/burnAllClaimNFTs", async (req, res) => {
   try {
     const receipt = await burnAllClaimNFTs();
-    res.status(200).json(receipt);
+    console.log("Transaction receipt:", receipt);
+    res.status(200).json({ message: "Reset successful", receipt });
   } catch (error) {
-    console.error("Error in /burnAllClaimNFTs:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Error in /reset endpoint:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 });
 
@@ -200,10 +199,12 @@ app.post("/reset", async (req, res) => {
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
-    res.status(200).json({
-      message: "Database reset successfully",
-      deletedCount: result.deletedCount,
-    });
+    res
+      .status(200)
+      .json({
+        message: "Database reset successfully",
+        deletedCount: result.deletedCount,
+      });
   } catch (err) {
     res.status(500).json({ error: err });
   }

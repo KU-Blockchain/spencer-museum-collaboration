@@ -173,15 +173,11 @@ const GenerateComponent = ({
   };
 */
   const reset = async () => {
-    if (!contract) {
-      console.log("Contract not found. Check MetaMask connection.");
-      return;
-    }
 
     try {
       // Burn all NFTs
       showLoading("Resetting");
-      //await sendTransaction(contract.methods.BurnReset());
+      await burnAllClaimNFTs();
       console.log("All NFTs have been burned.");
       logMessage("All NFTs have been burned.");
     } catch (error) {
