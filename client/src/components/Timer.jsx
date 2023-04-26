@@ -33,9 +33,6 @@ const Timer = ({
     }*/
 
     try {
-      const accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
       
       await contract.methods
         .burnSpecificNFTs(walletAddresses)
@@ -46,7 +43,7 @@ const Timer = ({
       console.error("Error details:", error);
     }
   };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const TimeEndingHandler = useCallback(async (contract) => {
     const claims = await fetchClaims();
     const claimsCount = claims.length;

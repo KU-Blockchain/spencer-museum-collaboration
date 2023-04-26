@@ -51,7 +51,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
       }
     }
     return 0;
-  });
+  }, [contract]);
 
   useEffect(() => {
     setMessageQueue((prevQueue) => [
