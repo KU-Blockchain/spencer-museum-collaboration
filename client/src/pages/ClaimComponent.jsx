@@ -98,10 +98,6 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
             privateKey
           );
 
-          const txReceipt = await web3.eth.sendSignedTransaction(
-            signedTx.rawTransaction
-          );
-
           const timestamp = Date.now();
           await saveClaimData(userAddress, timestamp); // save to database
           hideLoading();

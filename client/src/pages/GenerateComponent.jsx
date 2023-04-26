@@ -19,7 +19,7 @@ const GenerateComponent = ({
   hideLoading
 }) => {
   const [numWallets, setNumWallets] = useState(1);
-  const [totalSupply, setTotalSupply] = useState(0);
+
   const [wallets, setWallets] = useState([]);
   const [emailInputs, setEmailInputs] = useState(Array(numWallets).fill(""));
 
@@ -38,12 +38,7 @@ const GenerateComponent = ({
     });
   }, [numWallets]);
 
-  useEffect(() => {
-    if (contract) {
-      getTotalSupply(contract);
-    }
-  }, [contract]);
-
+/*
   const sendEmails = useCallback(async () => {
     console.log("wallets length in send emails: " + wallets.length);
 
@@ -78,7 +73,7 @@ const GenerateComponent = ({
 
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
-
+*/
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
     newEmailInputs[index] = value;
@@ -89,6 +84,7 @@ const GenerateComponent = ({
     const emailRegex = /^\S+@\S+\.\S+$/;
     return emailInputs.every((email) => emailRegex.test(email));
   };
+  
 
   const generateWalletAndMintNFT = async () => {
     showLoading("Generating wallet");
@@ -124,15 +120,6 @@ const GenerateComponent = ({
     console.log("Created wallet in database: " + wallet.address);
     // Update ActiveNFTs and ClaimCount in the database
     await updateData(1);
-  };
-
-  const getTotalSupply = async (contractInstance) => {
-    try {
-      const supply = await contractInstance.methods.totalSupply().call();
-      setTotalSupply(supply);
-    } catch (error) {
-      console.error("Error fetching total supply:", error);
-    }
   };
 
   const sendTransaction = async (transaction) => {

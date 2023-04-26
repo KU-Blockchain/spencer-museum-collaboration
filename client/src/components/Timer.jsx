@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import socketIOClient from "socket.io-client";
 
 const Timer = ({
@@ -36,19 +36,18 @@ const Timer = ({
       const accounts = await window.ethereum.request({
         method: "eth_accounts",
       });
-      const fromAddress = accounts[0]; // Assuming the first address is the one you want to use
-
+      
       await contract.methods
         .burnSpecificNFTs(walletAddresses)
-       // .send({ from:  }); // Add the 'from' field here
-      
+     
+
       console.log("Specified NFTs have been burned.");
     } catch (error) {
       console.error("Error details:", error);
     }
   };
 
-  const TimeEndingHandler = async (contract) => {
+  const TimeEndingHandler = useCallback(async (contract) => {
     const claims = await fetchClaims();
     const claimsCount = claims.length;
 
@@ -61,7 +60,7 @@ const Timer = ({
     } else {
       console.log("Threshold amount exceeded");
     }
-  };
+  });
 
   useEffect(() => {
     const socket = socketIOClient("http://localhost:5001");
@@ -88,7 +87,7 @@ const Timer = ({
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [TimeEndingHandler, contract, intervalId]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);

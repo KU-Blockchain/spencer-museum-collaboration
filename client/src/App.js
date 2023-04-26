@@ -10,13 +10,13 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
-import io from "socket.io-client";
+/*import io from "socket.io-client";
 const socket = io("http://localhost:5001", {
   withCredentials: true,
   extraHeaders: {
     "my-custom-header": "abcd",
   },
-});
+});*/
 
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
