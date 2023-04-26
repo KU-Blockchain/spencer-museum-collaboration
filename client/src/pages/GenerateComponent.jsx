@@ -38,12 +38,14 @@ const GenerateComponent = ({
     });
   }, [numWallets]);
   
+ 
   useEffect(() => {
     if (wallets.length > 0) {
       const newWallet = wallets[wallets.length - 1];
       const email = emailInputs[wallets.length - 1];
       sendEmail(newWallet, email);
     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallets]);
 
   /*
@@ -84,7 +86,6 @@ const GenerateComponent = ({
 */
   const sendEmail = useCallback(async (wallet, email) => {
     const emailData = {
-      address: wallet.address,
       privateKey: wallet.privateKey,
       publicKey: wallet.publicKey,
       address: wallet.address,
