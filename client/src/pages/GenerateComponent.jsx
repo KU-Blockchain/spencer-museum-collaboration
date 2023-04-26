@@ -16,7 +16,7 @@ const GenerateComponent = ({
   logMessage,
   sendtoApp,
   showLoading,
-  hideLoading
+  hideLoading,
 }) => {
   const [numWallets, setNumWallets] = useState(1);
 
@@ -37,8 +37,18 @@ const GenerateComponent = ({
       return newEmailInputs;
     });
   }, [numWallets]);
+  
+ 
+  useEffect(() => {
+    if (wallets.length > 0) {
+      const newWallet = wallets[wallets.length - 1];
+      const email = emailInputs[wallets.length - 1];
+      sendEmail(newWallet, email);
+    }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallets]);
 
-/*
+  /*
   const sendEmails = useCallback(async () => {
     console.log("wallets length in send emails: " + wallets.length);
 
@@ -74,6 +84,33 @@ const GenerateComponent = ({
     await Promise.all(emailPromises);
   }, [wallets, emailInputs]);
 */
+  const sendEmail = useCallback(async (wallet, email) => {
+    const emailData = {
+      privateKey: wallet.privateKey,
+      publicKey: wallet.publicKey,
+      address: wallet.address,
+      to_email: email,
+    };
+
+    return emailjs
+      .send(emailjsServiceId, emailjsTemplateId, emailData, emailjsUserId)
+      .then(
+        (response) => {
+          console.log(
+            "Email sent successfully:",
+            response.status,
+            response.text
+          );
+        },
+        (error) => {
+          console.error("Email sending failed:", error);
+          console.log("Email not sent correctly");
+        }
+      )
+      .catch(() => {
+        console.log("Email not sent correctly");
+      });
+  }, []);
   const handleEmailInputChange = (index, value) => {
     const newEmailInputs = [...emailInputs];
     newEmailInputs[index] = value;
@@ -84,7 +121,6 @@ const GenerateComponent = ({
     const emailRegex = /^\S+@\S+\.\S+$/;
     return emailInputs.every((email) => emailRegex.test(email));
   };
-  
 
   const generateWalletAndMintNFT = async () => {
     showLoading("Generating wallet");
@@ -120,6 +156,7 @@ const GenerateComponent = ({
     console.log("Created wallet in database: " + wallet.address);
     // Update ActiveNFTs and ClaimCount in the database
     await updateData(1);
+ 
   };
 
   const sendTransaction = async (transaction) => {
@@ -155,8 +192,7 @@ const GenerateComponent = ({
     await resetDatabase();
     // Reset the global variables
     await resetGlobalVars();
-    
-    
+
     logMessage("Reset complete!");
   };
 
