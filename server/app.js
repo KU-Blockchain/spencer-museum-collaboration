@@ -1,33 +1,50 @@
-const express = require('express');
+const express = require("express");
+const Web3 = require("web3");
 const app = express();
 const http = require("http");
-const server = http.createServer(app); 
-const cors = require('cors');
-require('dotenv').config();
-
+const server = http.createServer(app);
+const cors = require("cors");
+require("dotenv").config();
+const {
+  mintClaimNFT,
+  burnAllClaimNFTs,
+  burnSpecificClaimNFTs,
+} = require("./tokenInteractions");
 
 const PORT = process.env.PORT || 5001;
+//const claimNFTAddress = '0x5104c25aa45c48774ea1f540913c8fdefe386606';
+const {
+  abi: claimNFTABI,
+  address: claimNFTAddress,
+} = require("./ABI/ClaimNFT.json");
+const {
+  abi: ownershipNFTABI,
+  address: ownershipNFTAddress,
+} = require("./ABI/OwnershipNFT.json");
+const {
+  abi: fractionalOwnNFTABI,
+  address: fractionalOwnNFTAddress,
+} = require("./ABI/FractionalOwnNFT.json");
+const { updateActiveWalletCount } = require("./api");
+const privateKey = process.env.PRIVATE_KEY;
 
-const { abi: claimNFTABI, address: claimNFTAddress } = require('./ABI/ClaimNFT.json');
-const { updateActiveWalletCount } = require('./api');
-
-
-const { MongoClient } = require('mongodb');
-const mongoose = require('mongoose');
+const { MongoClient } = require("mongodb");
+const mongoose = require("mongoose");
 const dbPassword = process.env.DB_PASSWORD;
-const Wallet = require('./models/wallet');
+const Wallet = require("./models/wallet");
 const Claim = require("./models/claim");
 
 // Replace <password> with your actual password
 //const uri = `mongodb+srv://enasseri02:${dbPassword}@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority`;
-const uri = 'mongodb+srv://enasseri02:IGpL1fmUGgS6YFhp@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority';
+const uri =
+  "mongodb+srv://enasseri02:IGpL1fmUGgS6YFhp@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: {
-    version: '1',
+    version: "1",
     strict: true,
     deprecationErrors: true,
   },
@@ -35,23 +52,57 @@ const client = new MongoClient(uri, {
 
 //app.use(cors());
 const corsOptions = {
-  origin: 'http://localhost:3000', // Or the URL of your client-side app
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: ['Content-Type', 'Authorization', 'my-custom-header'],
+  origin: "http://localhost:3000", // Or the URL of your client-side app
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization", "my-custom-header"],
   credentials: true,
 };
 
 const io = require("socket.io")(server, {
-  cors: corsOptions
+  cors: corsOptions,
 });
 app.use(cors(corsOptions));
 
 // Use the express.json middleware to parse incoming JSON data
 app.use(express.json());
 
- // Now that we have connected, start the express server
- app.get('/', (req, res) => {
-  res.send('Hello World!');
+// Now that we have connected, start the express server
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.post("/mintClaimNFT", async (req, res) => {
+  const { userAddress, tokenURI } = req.body;
+
+  try {
+    const receipt = await mintClaimNFT(userAddress, tokenURI);
+    res.status(200).json(receipt);
+  } catch (error) {
+    console.error("Error in /mintClaimNFT:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/burnAllClaimNFTs", async (req, res) => {
+  try {
+    const receipt = await burnAllClaimNFTs();
+    res.status(200).json(receipt);
+  } catch (error) {
+    console.error("Error in /burnAllClaimNFTs:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/burnSpecificClaimNFTs", async (req, res) => {
+  const { walletAddresses } = req.body;
+
+  try {
+    const receipt = await burnSpecificClaimNFTs(walletAddresses);
+    res.status(200).json(receipt);
+  } catch (error) {
+    console.error("Error in /burnSpecificClaimNFTs:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Add this route below the existing routes
@@ -64,20 +115,24 @@ app.get("/claims", async (req, res) => {
   }
 });
 
-app.put('/updateActiveTokenCount', async (req, res) => {
+app.put("/updateActiveTokenCount", async (req, res) => {
   const { activeTokenCount } = req.body;
 
   try {
-    const updatedGlobalVars = await updateActiveTokenCountInDatabase(activeTokenCount);
+    const updatedGlobalVars = await updateActiveTokenCountInDatabase(
+      activeTokenCount
+    );
     res.status(200).json(updatedGlobalVars);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating active token count', error });
+    res
+      .status(500)
+      .json({ message: "Error updating active token count", error });
   }
 });
 async function updateActiveTokenCountInDatabase(activeTokenCount) {
   const globalVars = await GlobalVars.findOne();
   if (!globalVars) {
-    throw new Error('GlobalVars not found');
+    throw new Error("GlobalVars not found");
   }
 
   globalVars.ActiveNFTCount = activeTokenCount;
@@ -127,15 +182,14 @@ app.post("/claim", async (req, res) => {
   }
 });
 
-
 // PUT endpoint to update ActiveNFTs and ClaimCount
-app.put('/update', async (req, res) => {
+app.put("/update", async (req, res) => {
   // Implement your logic for updating ActiveNFTs and ClaimCount
   // You may need to create a separate schema and model for storing these values.
 });
 
 // POST endpoint to reset the database
-app.post('/reset', async (req, res) => {
+app.post("/reset", async (req, res) => {
   try {
     // Remove all wallets
     const result = await Wallet.deleteMany({});
@@ -146,27 +200,29 @@ app.post('/reset', async (req, res) => {
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
-    res.status(200).json({ message: "Database reset successfully", deletedCount: result.deletedCount });
+    res.status(200).json({
+      message: "Database reset successfully",
+      deletedCount: result.deletedCount,
+    });
   } catch (err) {
     res.status(500).json({ error: err });
   }
 });
 
-const GlobalVars = require('./models/globalVars'); // Import the GlobalStats model
+const GlobalVars = require("./models/globalVars"); // Import the GlobalStats model
 
-app.get('/globalVars', async (req, res) => {
+app.get("/globalVars", async (req, res) => {
   try {
     const globalVars = await GlobalVars.findOne({});
     console.log("globalVars:", globalVars); // Add this line
     res.status(200).json(globalVars);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching global vars' });
+    res.status(500).json({ message: "Error fetching global vars" });
   }
 });
 
-
 // Endpoint to update global stats
-app.put('/globalVars', async (req, res) => {
+app.put("/globalVars", async (req, res) => {
   try {
     const { ActiveNFTCount, ActiveWalletCount, ClaimedNFTCount } = req.body;
     const globalVars = await GlobalVars.findOneAndUpdate(
@@ -176,17 +232,16 @@ app.put('/globalVars', async (req, res) => {
     );
     res.status(200).json(globalVars);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating global vars' });
+    res.status(500).json({ message: "Error updating global vars" });
   }
 });
 
-
 // app.js
-app.patch('/globalVars/incrementActiveWalletCount', async (req, res) => {
+app.patch("/globalVars/incrementActiveWalletCount", async (req, res) => {
   try {
     const globalVars = await GlobalVars.findOne();
     if (!globalVars) {
-      res.status(404).send('GlobalVars not found');
+      res.status(404).send("GlobalVars not found");
       return;
     }
 
@@ -195,10 +250,11 @@ app.patch('/globalVars/incrementActiveWalletCount', async (req, res) => {
 
     res.status(200).send(globalVars);
   } catch (error) {
-    res.status(500).send('Error incrementing ActiveWalletCount: ' + error.message);
+    res
+      .status(500)
+      .send("Error incrementing ActiveWalletCount: " + error.message);
   }
 });
-
 
 async function run() {
   try {
@@ -206,24 +262,24 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-   
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
 
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
 
     // Connect Mongoose to the MongoDB client
-    mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    })
-    .then(() => console.log('Mongoose connected'))
-    .catch((err) => console.log('Error connecting Mongoose:', err));
-
+    mongoose
+      .connect(uri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
+      .then(() => console.log("Mongoose connected"))
+      .catch((err) => console.log("Error connecting Mongoose:", err));
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
+    console.error("Error connecting to MongoDB:", error);
   } finally {
     // Don't close the client, as we want to keep it connected for the lifetime of the server
     // await client.close();
@@ -231,5 +287,3 @@ async function run() {
 }
 
 run().catch(console.dir);
-
-

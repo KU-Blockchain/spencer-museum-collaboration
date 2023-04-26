@@ -3,42 +3,102 @@ const API_URL = "http://localhost:5001";
 
 // Function to create a new wallet
 export async function createWallet(walletData) {
-    console.log("createWallet called with data:", walletData); // Add this console log
-    const response = await fetch(`${API_URL}/wallets`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(walletData),
-    });
-  
-    if (!response.ok) {
-      throw new Error(`Error creating wallet: ${response.statusText}`);
-    }
-  
-    const data = await response.json();
-    return data;
-  }
-  // client-api.js
+  console.log("createWallet called with data:", walletData); // Add this console log
+  const response = await fetch(`${API_URL}/wallets`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(walletData),
+  });
 
-export const saveClaimData = async (walletAddress, timestamp) => {
-    console.log("sending claim data to server:", walletAddress, timestamp);
-    const response = await fetch(`${API_URL}/claim`, {
+  if (!response.ok) {
+    throw new Error(`Error creating wallet: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
+}
+export async function mintClaimNFT(userAddress, tokenURI) {
+  try {
+    const response = await fetch(`${API_URL}/mintClaimNFT`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ walletAddress, timestamp }),
+      body: JSON.stringify({ userAddress, tokenURI }),
     });
-  
+
     if (!response.ok) {
-      console.error("Error saving claim data:", response.statusText);
-      throw new Error(response.statusText);
+      throw new Error(`Error: ${response.statusText}`);
     }
-  
+
     const data = await response.json();
     return data;
-  };
-  
-  
+  } catch (error) {
+    console.error("Error in mintClaimNFT:", error);
+    throw error;
+  }
+}
+export async function burnAllClaimNFTs() {
+  try {
+    const response = await fetch(`${API_URL}/burnAllClaimNFTs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error in burnAllClaimNFTs:", error);
+    throw error;
+  }
+}
+export async function burnSpecificClaimNFTs(walletAddresses) {
+  try {
+    const response = await fetch(`${API_URL}/burnSpecificClaimNFTs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ walletAddresses }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error in burnSpecificClaimNFTs:", error);
+    throw error;
+  }
+}
+
+export const saveClaimData = async (walletAddress, timestamp) => {
+  console.log("sending claim data to server:", walletAddress, timestamp);
+  const response = await fetch(`${API_URL}/claim`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ walletAddress, timestamp }),
+  });
+
+  if (!response.ok) {
+    console.error("Error saving claim data:", response.statusText);
+    throw new Error(response.statusText);
+  }
+
+  const data = await response.json();
+  return data;
+};
+
 // Function to update ActiveNFTs and ClaimCount
 export async function updateData() {
   const response = await fetch("http://localhost:5001/update", {
