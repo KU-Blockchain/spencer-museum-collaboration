@@ -113,19 +113,15 @@ const App = () => {
                 <Route
                   path="/claim"
                   element={
-                    web3 ? (
-                      <ClaimComponent
-                        styles={appStyles}
-                        logMessage={logMessage}
-                        web3={web3}
-                        contract={contract}
-                        account={account}
-                        showLoading={showLoading}
-                        hideLoading={hideLoading}
-                      />
-                    ) : (
-                      <p>Loading...</p>
-                    )
+                    <ClaimComponent
+                      styles={appStyles}
+                      logMessage={logMessage}
+                      web3={web3}
+                      contract={contract}
+                      account={account}
+                      showLoading={showLoading}
+                      hideLoading={hideLoading}
+                    />
                   }
                 />
               </Routes>
@@ -274,7 +270,7 @@ const appStyles = {
     fontFamily: "Courier New, monospace",
     outline: "2px solid #000000",
     lineHeight: "0.5",
-    padding: "0.5rem"
+    padding: "0.5rem",
   },
 };
 

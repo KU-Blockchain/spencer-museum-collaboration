@@ -6,7 +6,7 @@ import {
   updateData,
   resetGlobalVars,
   resetDatabase,
-  mintClaimNFT, burnAllClaimNFTs, burnSpecificClaimNFTs
+  mintClaimNFT, burnAllClaimNFTs
 } from "../client-api"; // Assuming the functions are in a file named 'api.js'
 
 const GenerateComponent = ({
@@ -159,19 +159,7 @@ const GenerateComponent = ({
     await updateData(1);
  
   };
-/*
-  const sendTransaction = async (transaction) => {
-    try {
-      const result = await transaction.send({ from: account });
-      console.log("Transaction successful:", result);
-      return result;
-    } catch (error) {
-      console.error("Transaction failed:", error.message);
-      hideLoading();
-      throw error;
-    }
-  };
-*/
+
   const reset = async () => {
 
     try {

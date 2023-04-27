@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import socketIOClient from "socket.io-client";
+import { burnSpecificClaimNFTs } from "../client-api";
 
 const Timer = ({
   web3,
@@ -27,19 +28,14 @@ const Timer = ({
   };
 
   const burnNFTs = async (contract, walletAddresses) => {
-    /*if (!contract) {
-      console.log("Contract not found. Check MetaMask connection.");
-      return;
-    }*/
 
     try {
-      
-      await contract.methods
-        .burnSpecificNFTs(walletAddresses)
-     
-
+      showLoading("Destroying NFTs");
+      await burnSpecificClaimNFTs(walletAddresses);
       console.log("Specified NFTs have been burned.");
+      hideLoading();
     } catch (error) {
+      hideLoading();
       console.error("Error details:", error);
     }
   };

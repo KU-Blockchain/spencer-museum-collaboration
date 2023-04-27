@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from "react";
 import claimNFTABI from "../ABI/ClaimNFT.json";
-import { saveClaimData } from "../client-api";
+import { saveClaimData, executeClaim, initiateFundTransfer, getTokenIdByAddress } from "../client-api";
+const API_URL = "http://localhost:5001";
 
-const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoading, hideLoading }) => {
+
+const ClaimComponent = ({
+  styles,
+  logMessage,
+  showLoading,
+  hideLoading,
+}) => {
   const [userAddress, setUserAddress] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");
   const [nftDetected, setNftDetected] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [connectedAddress, setConnectedAddress] = useState("");
-
-  // Define claimNFTAddress
-  const claimNFTAddress = "0x5104c25aa45c48774ea1f540913c8fdefe386606";
-
-  // Define claimNFTContract
-  const claimNFTContract = new web3.eth.Contract(
-    claimNFTABI.abi,
-    claimNFTAddress
-  );
+ 
   useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => {
-        setErrorMessage('');
+        setErrorMessage("");
       }, 5000);
 
       // Clear the timer when the component is unmounted or the error message changes
@@ -29,9 +27,10 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
     }
   }, [errorMessage]);
 
-
   const handleVerification = async () => {
-    try {
+    console.log("NFT detected (hardcoded response)");
+    setNftDetected(true);
+    /* try {
       if (web3 && account) {
         setConnectedAddress(account);
 
@@ -42,7 +41,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
 
         if (balance > 0) {
           setNftDetected(true);
-          console.log("NFT detected");
+          
         } else {
           setErrorMessage("No ClaimNFT found in the wallet");
         }
@@ -53,8 +52,9 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
       }
     } catch (error) {
       setErrorMessage(error.message);
-    }
+    }*/
   };
+
 
   const handleClaim = async (tokenId) => {
     showLoading("Claiming NFT");
@@ -63,55 +63,22 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
     while (!claimSuccessful) {
       showLoading("Validating claim");
       try {
-        if (web3 && nftDetected) {
- /*
-          const claimNFTContract = new web3.eth.Contract(
-            claimNFTABI.abi,
-            claimNFTAddress
-          );
+        const timestamp = Date.now();
+        await saveClaimData(userAddress, timestamp); // save to database
 
-          // Estimate the gas required for the transaction
-          const gasLimit = await claimNFTContract.methods
-            .claimLand(tokenId, userAddress)
-            .estimateGas({ from: userAddress });
+        await executeClaim(tokenId, userAddress); // call the client-api.js function
 
-          // Get the current gas price
-          const gasPrice = await web3.eth.getGasPrice();
-          logMessage("Gas limit: " + gasLimit);
-
-          const txData = claimNFTContract.methods
-            .claimLand(tokenId, userAddress)
-            .encodeABI();
-
-          const nonce = await web3.eth.getTransactionCount(userAddress);
-          const rawTransaction = {
-            from: connectedAddress,
-            to: claimNFTAddress,
-            value: "0x0",
-            gasLimit: web3.utils.toHex(gasLimit),
-            gasPrice: web3.utils.toHex(gasPrice),
-            nonce: web3.utils.toHex(nonce),
-            data: txData,
-          };*/
-
-          const timestamp = Date.now();
-          await saveClaimData(userAddress, timestamp); // save to database
-          hideLoading();
-          logMessage("Claim initiated");
-          setNftDetected(false);
-          claimSuccessful = true;
-        } else {
-          setErrorMessage(
-            "Please verify the wallet and ensure the NFT is detected"
-          );
-          break;
-        }
+        hideLoading();
+        logMessage("Claim initiated");
+        setNftDetected(false);
+        claimSuccessful = true;
       } catch (error) {
         if (error.message.includes("insufficient funds")) {
           logMessage("Error: Insufficient funds, transferring more...");
           setErrorMessage("Error: Insufficient funds, transferring more...");
           try {
             await transferFunds(tokenId);
+            await handleClaim(tokenId); // Retry the claim after transferring funds
           } catch (transferError) {
             logMessage("Error: " + transferError.message);
             setErrorMessage("Error: " + transferError.message);
@@ -127,92 +94,35 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
   };
 
   const transferFunds = async (tokenId) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        showLoading("Calculating gas fees");
-        // Estimate gas required for the NFT claim transaction
-        const gasLimit = await contract.methods
-          .claimLand(tokenId, userAddress)
-          .estimateGas({ from: userAddress });
-
-        const gasPrice = await web3.eth.getGasPrice();
-
-        // Calculate the required amount of Matic
-        const requiredMatic = web3.utils
-          .toBN(gasLimit)
-          .mul(web3.utils.toBN(gasPrice));
-
-        // Add a 10% buffer
-        const bufferMultiplier = 1.1;
-        const bufferedMatic = requiredMatic
-          .mul(web3.utils.toBN(Math.round(bufferMultiplier * 2e18)))
-          .div(web3.utils.toBN(1e18));
-
-        const nonce = await web3.eth.getTransactionCount(connectedAddress);
-
-        
-        const rawTransaction = {
-          from: connectedAddress,
-          to: userAddress,
-          value: web3.utils.toHex(bufferedMatic),
-          gasLimit: web3.utils.toHex(21000),
-          gasPrice: web3.utils.toHex(gasPrice),
-          nonce: web3.utils.toHex(nonce),
-        };
-        showLoading("Transferring necessary funds");
-        const txHash = await window.ethereum.request({
-          method: "eth_sendTransaction",
-          params: [rawTransaction],
-        });
-        console.log("Funds transferred");
-        hideLoading();
-        logMessage("Amount transferred: " + web3.utils.toHex(bufferedMatic));
-        // Wait for transaction confirmation
-        web3.eth.getTransactionReceipt(txHash, (error, receipt) => {
-          if (error) {
-            reject("Error getting transaction receipt: " + error.message);
-          } else {
-            resolve(receipt);
-          }
-        });
-      } catch (error) {
-        reject("Error transferring funds: " + error.message);
-        hideLoading();
+    try {
+      const response = await initiateFundTransfer(tokenId, userAddress);
+      if (response.status === "success") {
+        logMessage("Amount transferred: " + response.transferredAmount);
+      } else {
+        throw new Error(response.message);
       }
-      hideLoading();
-    });
+    } catch (error) {
+      throw new Error("Error transferring funds: " + error.message);
+    }
   };
+  
 
   const handleClaimProcess = async () => {
     showLoading("Initiating claim");
     logMessage("Claim Initiated...");
-
-    const activeTokenCount = await claimNFTContract.methods
-      .activeTokenCount()
-      .call();
-    console.log("activeTokenCount: " + activeTokenCount);
-    let tokenId = 0;
-
-    console.log("active token count: " + activeTokenCount);
-    for (let i = 0; i < activeTokenCount; i++) {
-      const currentTokenId = await claimNFTContract.methods
-        .activeTokenIdByIndex(i)
-        .call();
-      console.log("currentTokenId: " + currentTokenId);
-      console.log("i: " + i);
-      if (
-        (await claimNFTContract.methods.ownerOf(currentTokenId).call()) ===
-        userAddress
-      ) {
-        tokenId = currentTokenId; // Use the correct token ID here, not the index
-
-        break;
-      }
+  
+    try {
+      const tokenId = await getTokenIdByAddress(userAddress);
+      console.log("tokenId: " + tokenId);
+  
+      await handleClaim(tokenId);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      hideLoading();
     }
-    
-    await handleClaim(tokenId);
-    hideLoading();
   };
+  
 
   return (
     <div style={styles.section}>
@@ -223,7 +133,6 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
         value={userAddress}
         onChange={(e) => setUserAddress(e.target.value)}
         style={styles.input}
-
       />
       <button onClick={handleVerification} style={styles.button}>
         Verify Wallet
@@ -236,7 +145,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
             value={publicKey}
             onChange={(e) => setPublicKey(e.target.value)}
             style={styles.input}
-            display ='block'
+            display="block"
           />
           <input
             type="password"
@@ -244,7 +153,7 @@ const ClaimComponent = ({ web3, contract, account, styles, logMessage, showLoadi
             value={privateKey}
             onChange={(e) => setPrivateKey(e.target.value)}
             style={styles.input}
-            display ='block'
+            display="block"
           />
           <button
             onClick={handleClaimProcess}

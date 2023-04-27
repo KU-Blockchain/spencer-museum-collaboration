@@ -76,6 +76,10 @@ contract ClaimNFT is ERC721URIStorage {
         return _activeTokenCount;
     }
 
+    function addressToTokenId(address account) public view returns (uint256) {
+        return _addressToTokenId[account];
+    }
+
     // Function to burn all NFTs and reset the total number of instances of this contract to 0
     function BurnReset() public {
         for (uint256 tokenId = 1; tokenId <= _tokenIds.current(); tokenId++) {

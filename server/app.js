@@ -4,13 +4,17 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const cors = require("cors");
-require('dotenv').config();
-const { mintClaimNFT,
+require("dotenv").config();
+const {
+  mintClaimNFT,
   burnAllClaimNFTs,
-  burnSpecificClaimNFTs } = require("./tokenInteractions");
+  burnSpecificClaimNFTs,
+  executeClaim,
+  handleFundTransfer,
+  getTokenIdByAddress
+} = require("./tokenInteractions");
 
 const PORT = process.env.PORT || 5001;
-//const claimNFTAddress = '0x5104c25aa45c48774ea1f540913c8fdefe386606';
 const {
   abi: claimNFTABI,
   address: claimNFTAddress,
@@ -81,6 +85,29 @@ app.post("/mintClaimNFT", async (req, res) => {
   }
 });
 
+app.post("/transferFunds", async (req, res) => {
+  const { from, to, amount } = req.body;
+
+  try {
+    const receipt = await handleFundTransfer(from, to, amount);
+    res.status(200).json(receipt);
+  } catch (error) {
+    console.error("Error in /transferFunds:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+app.post("/get-token-id", async (req, res) => {
+  try {
+    const { userAddress } = req.body;
+    const tokenId = await getTokenIdByAddress(userAddress);
+    res.status(200).json({ tokenId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 app.post("/burnAllClaimNFTs", async (req, res) => {
   try {
     const receipt = await burnAllClaimNFTs();
@@ -88,7 +115,9 @@ app.post("/burnAllClaimNFTs", async (req, res) => {
     res.status(200).json({ message: "Reset successful", receipt });
   } catch (error) {
     console.error("Error in /reset endpoint:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 });
 
@@ -111,6 +140,18 @@ app.get("/claims", async (req, res) => {
     res.status(200).json(claims);
   } catch (error) {
     res.status(500).json({ message: "Error fetching claims", error });
+  }
+});
+
+app.post("/executeClaim", async (req, res) => {
+  const { tokenId, userAddress } = req.body;
+
+  try {
+    const receipt = await executeClaim(tokenId, userAddress);
+    res.status(200).json(receipt);
+  } catch (error) {
+    console.error("Error in /executeClaim:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -199,12 +240,10 @@ app.post("/reset", async (req, res) => {
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
-    res
-      .status(200)
-      .json({
-        message: "Database reset successfully",
-        deletedCount: result.deletedCount,
-      });
+    res.status(200).json({
+      message: "Database reset successfully",
+      deletedCount: result.deletedCount,
+    });
   } catch (err) {
     res.status(500).json({ error: err });
   }
