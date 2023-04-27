@@ -63,11 +63,14 @@ const ClaimComponent = ({
     while (!claimSuccessful) {
       showLoading("Executing claim");
       try {
-        const timestamp = Date.now();
+        const date = Date.now();
+        const timestamp = new Date(date);
+        const formattedDate = timestamp.toISOString().slice(0, -5) + "Z";
+
 
         await executeClaim(tokenId, userAddress); // call the client-api.js function
         hideLoading();
-        await saveClaimData(userAddress, timestamp); // save to database
+        await saveClaimData(userAddress, formattedDate); // save to database
         
         logMessage("Claim initiated");
         setNftDetected(false);
