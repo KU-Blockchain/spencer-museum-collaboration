@@ -131,9 +131,6 @@ const App = () => {
             <Timer
               styles={appStyles}
               logMessage={logMessage}
-              web3={web3}
-              contract={contract}
-              account={account}
               showLoading={showLoading}
               hideLoading={hideLoading}
             />

@@ -61,14 +61,14 @@ const ClaimComponent = ({
     let claimSuccessful = false;
 
     while (!claimSuccessful) {
-      showLoading("Validating claim");
+      showLoading("Executing claim");
       try {
         const timestamp = Date.now();
-        await saveClaimData(userAddress, timestamp); // save to database
 
         await executeClaim(tokenId, userAddress); // call the client-api.js function
-
         hideLoading();
+        await saveClaimData(userAddress, timestamp); // save to database
+        
         logMessage("Claim initiated");
         setNftDetected(false);
         claimSuccessful = true;

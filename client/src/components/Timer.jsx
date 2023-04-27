@@ -3,9 +3,6 @@ import socketIOClient from "socket.io-client";
 import { burnSpecificClaimNFTs } from "../client-api";
 
 const Timer = ({
-  web3,
-  contract,
-  account,
   styles,
   logMessage,
   showLoading,
@@ -27,7 +24,7 @@ const Timer = ({
     }
   };
 
-  const burnNFTs = async (contract, walletAddresses) => {
+  const burnNFTs = async (walletAddresses) => {
 
     try {
       showLoading("Destroying NFTs");
@@ -40,7 +37,7 @@ const Timer = ({
     }
   };
 // eslint-disable-next-line react-hooks/exhaustive-deps
-  const TimeEndingHandler = useCallback(async (contract) => {
+  const TimeEndingHandler = useCallback(async () => {
     const claims = await fetchClaims();
     const claimsCount = claims.length;
 
@@ -48,8 +45,7 @@ const Timer = ({
 
     if (claimsCount <= threshold) {
       const walletAddresses = claims.map((claim) => claim.walletAddress);
-      console.log("Contract prop value:", contract);
-      await burnNFTs(contract, walletAddresses);
+      await burnNFTs(walletAddresses);
     } else {
       console.log("Threshold amount exceeded");
     }
@@ -68,7 +64,7 @@ const Timer = ({
         setTimeRemaining((prevTime) => {
           if (prevTime <= 1000) {
             clearInterval(newIntervalId);
-            TimeEndingHandler(contract);
+            TimeEndingHandler();
             return 0;
           }
           return prevTime - 1000;
@@ -80,7 +76,7 @@ const Timer = ({
     return () => {
       socket.disconnect();
     };
-  }, [TimeEndingHandler, contract, intervalId]);
+  }, [TimeEndingHandler, intervalId]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);

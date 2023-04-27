@@ -2,6 +2,37 @@ const Web3 = require("web3");
 const privateKey = process.env.PRIVATE_KEY;
 const web3 = new Web3('https://polygon-mumbai.g.alchemy.com/v2/OXZS1fOB3e1mTBT0o8_1W3T1FA6rIFTW'); // Polygon Mumbai RPC URL
 const wallet = web3.eth.accounts.privateKeyToAccount(privateKey);
+let currentNonce = null;
+
+const transactionQueue = [];
+let isProcessingQueue = false;
+
+const getAndUpdateNonce = async () => {
+  currentNonce = await web3.eth.getTransactionCount(wallet.address, "pending");
+  return currentNonce;
+};
+
+const sendTransaction = async (transactionFunc, ...args) => {
+  return new Promise(async (resolve, reject) => {
+    transactionQueue.push({ transactionFunc, args, resolve, reject });
+
+    if (!isProcessingQueue) {
+      isProcessingQueue = true;
+      while (transactionQueue.length > 0) {
+        const { transactionFunc, args, resolve, reject } = transactionQueue.shift();
+        try {
+          const result = await transactionFunc(...args);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+        await new Promise((r) => setTimeout(r, 500)); // Wait for half a second before processing the next transaction
+      }
+      isProcessingQueue = false;
+    }
+  });
+};
+
 
 const claimNFTAddress = '0x61d5f829407a425806d896ae7277f558f83fedc9';
 const {
@@ -46,7 +77,7 @@ const transferFunds = async (tokenId, userAddress, privateKey) => {
       .mul(web3.utils.toBN(Math.round(bufferMultiplier * 2e18)))
       .div(web3.utils.toBN(1e18));
 
-    const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
+    const nonce = await getAndUpdateNonce();
 
     const transaction = {
       from: wallet.address,
@@ -58,8 +89,10 @@ const transferFunds = async (tokenId, userAddress, privateKey) => {
     };
 
     const signedTransaction = await wallet.signTransaction(transaction);
-    const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-
+    const receipt = await sendTransaction(
+      web3.eth.sendSignedTransaction,
+      signedTransaction.rawTransaction
+    );
     return receipt;
   } catch (error) {
     console.error("Error transferring funds:", error);
@@ -69,6 +102,7 @@ const transferFunds = async (tokenId, userAddress, privateKey) => {
 
 const getTokenIdByAddress = async (userAddress) => {
   try {
+    const nonce = await getAndUpdateNonce();
     const tokenId = await claimContract.methods.addressToTokenId(userAddress).call();
     return tokenId;
   } catch (error) {
@@ -77,39 +111,39 @@ const getTokenIdByAddress = async (userAddress) => {
   }
 };
 
-
-
 const mintClaimNFT = async (userAddress, tokenURI) => {
-    try {
-      const gasPrice = await web3.eth.getGasPrice();
-      const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
-  
-      const txData = claimContract.methods.mintClaimNFT(userAddress, tokenURI).encodeABI();
-  
-      const transaction = {
-        from: wallet.address,
-        to: claimNFTAddress,
-        gas: await claimContract.methods.mintClaimNFT(userAddress, tokenURI).estimateGas({ from: wallet.address }),
-        gasPrice: gasPrice,
-        nonce: nonce,
-        data: txData,
-      };
-  
-      const signedTransaction = await wallet.signTransaction(transaction);
-      const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-  
-      return receipt;
-    } catch (error) {
-      console.error("Error in mintClaimNFT:", error);
-      throw error;
-    }
-  };
+  try {
+    const gasPrice = await web3.eth.getGasPrice();
+    const nonce = await getAndUpdateNonce();
+
+    const txData = claimContract.methods.mintClaimNFT(userAddress, tokenURI).encodeABI();
+
+    const transaction = {
+      from: wallet.address,
+      to: claimNFTAddress,
+      gas: await claimContract.methods.mintClaimNFT(userAddress, tokenURI).estimateGas({ from: wallet.address }),
+      gasPrice: gasPrice,
+      nonce: nonce,
+      data: txData,
+    };
+
+    const signedTransaction = await wallet.signTransaction(transaction);
+    const receipt = await sendTransaction(
+      web3.eth.sendSignedTransaction,
+      signedTransaction.rawTransaction
+    );
+    return receipt;
+  } catch (error) {
+    console.error("Error in mintClaimNFT:", error);
+    throw error;
+  }
+};
   
 
   const burnAllClaimNFTs = async () => {
     try {
       const gasPrice = await web3.eth.getGasPrice();
-      const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
+      const nonce = await getAndUpdateNonce();
   
       const txData = claimContract.methods.BurnReset().encodeABI();
   
@@ -123,8 +157,10 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
       };
   
       const signedTransaction = await wallet.signTransaction(transaction);
-      const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-  
+      const receipt = await sendTransaction(
+        web3.eth.sendSignedTransaction,
+        signedTransaction.rawTransaction
+      );
       return receipt;
     } catch (error) {
       console.error("Error in burnAllClaimNFTs:", error);
@@ -136,7 +172,8 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
   const burnSpecificClaimNFTs = async (walletAddresses) => {
     try {
       const gasPrice = await web3.eth.getGasPrice();
-      const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
+  
+      const nonce = await getAndUpdateNonce();
   
       const txData = claimContract.methods.burnSpecificNFTs(walletAddresses).encodeABI();
   
@@ -149,8 +186,18 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
         data: txData,
       };
   
+      // Added console logs
+      console.log('walletAddresses:', walletAddresses);
+      console.log('gasPrice:', gasPrice);
+      console.log('nonce:', nonce);
+      console.log('transaction:', transaction);
+  
       const signedTransaction = await wallet.signTransaction(transaction);
-      const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+      const receipt = await sendTransaction(
+        web3.eth.sendSignedTransaction,
+        signedTransaction.rawTransaction
+      );
+      console.log('signedTransaction:', signedTransaction);
   
       return receipt;
     } catch (error) {
@@ -158,38 +205,40 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
       throw error;
     }
   };
+  
+  
 
-const executeClaim = async (tokenId, userAddress) => {
-  try {
-    const gasPrice = await web3.eth.getGasPrice();
-    const nonce = await web3.eth.getTransactionCount(wallet.address, "pending");
-
-    const txData = claimContract.methods
-      .claimLand(tokenId, userAddress)
-      .encodeABI();
-
-    const transaction = {
-      from: wallet.address,
-      to: claimNFTAddress,
-      gas: await claimContract.methods
+  const executeClaim = async (tokenId, userAddress) => {
+    try {
+      const gasPrice = await web3.eth.getGasPrice();
+      const nonce = await getAndUpdateNonce();
+  
+      const txData = claimContract.methods
         .claimLand(tokenId, userAddress)
-        .estimateGas({ from: wallet.address }),
-      gasPrice: gasPrice,
-      nonce: nonce,
-      data: txData,
-    };
-
-    const signedTransaction = await wallet.signTransaction(transaction);
-    const receipt = await web3.eth.sendSignedTransaction(
-      signedTransaction.rawTransaction
-    );
-
-    return receipt;
-  } catch (error) {
-    console.error("Error in executeClaim:", error);
-    throw error;
-  }
-};
+        .encodeABI();
+  
+      const transaction = {
+        from: wallet.address,
+        to: claimNFTAddress,
+        gas: await claimContract.methods
+          .claimLand(tokenId, userAddress)
+          .estimateGas({ from: wallet.address }),
+        gasPrice: gasPrice,
+        nonce: nonce,
+        data: txData,
+      };
+  
+      const signedTransaction = await wallet.signTransaction(transaction);
+      const receipt = await sendTransaction(
+        web3.eth.sendSignedTransaction,
+        signedTransaction.rawTransaction
+      );
+      return receipt;
+    } catch (error) {
+      console.error("Error in executeClaim:", error);
+      throw error;
+    }
+  };
   
 
 module.exports = {
