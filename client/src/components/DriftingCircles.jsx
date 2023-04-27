@@ -1,8 +1,22 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+import io from 'socket.io-client';
 import anime from 'animejs';
 
 const DriftingCircles = () => {
   const containerRef = useRef(null);
+  useEffect(() => {
+    const socket = io("http://localhost:5001");
+  
+    socket.on('newWallet', (newWalletData) => {
+      // Update the wallets state and regenerate the circles
+      generateCircle();
+    });
+  
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  
 
   const generateCircle = () => {
     const circle = document.createElement('div');
@@ -48,7 +62,7 @@ const DriftingCircles = () => {
         ref={containerRef}
         style={{
           width: '50vh',
-          height: '40vh',
+          height: '30vh',
           position: 'relative',
           overflow: 'hidden',
           //border: '1px solid black',

@@ -2,6 +2,7 @@ const express = require("express");
 const Web3 = require("web3");
 const app = express();
 const http = require("http");
+
 const server = http.createServer(app);
 const cors = require("cors");
 require("dotenv").config();
@@ -63,6 +64,7 @@ const corsOptions = {
 const io = require("socket.io")(server, {
   cors: corsOptions,
 });
+
 app.use(cors(corsOptions));
 
 // Use the express.json middleware to parse incoming JSON data
@@ -181,10 +183,37 @@ async function updateActiveTokenCountInDatabase(activeTokenCount) {
 
   return globalVars;
 }
+
+io.on("connection", async (socket) => {
+  console.log("Client connected:", socket.id);
+
+  try {
+    const walletsData = await getWalletsWithCircleData();
+    socket.emit("initialData", walletsData);
+  } catch (error) {
+    console.error("Error sending initial data to client:", error);
+  }
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
 app.use((req, res, next) => {
   console.log(`Request URL: ${req.url} | Request method: ${req.method}`);
   next();
 });
+
+
+app.get('/wallets', async (req, res) => {
+  try {
+    const wallets = await Wallet.find();
+    res.json(wallets);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 // POST endpoint to create a new wallet
 app.post("/wallets", async (req, res) => {
@@ -198,6 +227,7 @@ app.post("/wallets", async (req, res) => {
 
     // Increment ActiveWalletCount
     await updateActiveWalletCount(1);
+    io.emit("walletCreated", wallet);
     res.status(201).json(wallet);
   } catch (err) {
     console.error("Error saving wallet:", err); // Add this console log
@@ -308,6 +338,48 @@ app.patch("/globalVars/incrementActiveWalletCount", async (req, res) => {
   }
 });
 
+async function getWalletsWithCircleData() {
+  const wallets = await Wallet.find();
+  return wallets.map((wallet) => {
+    return {
+      _id: wallet._id,
+      address: wallet.address,
+      color: wallet.claimed === "claimed" ? "pink" : "red",
+    };
+  });
+}
+
+io.on('connection', (socket) => {
+  console.log('New client connected');
+
+  // Listen for a new wallet event from your database
+  // You can use MongoDB Change Streams to watch for changes in your collection
+  // When a new wallet is added, emit a 'newWallet' event to the client
+  // For example: socket.emit('newWallet', newWalletData);
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+async function watchWalletsCollection() {
+  const db = client.db("myDatabase"); // Replace 'myDatabase' with the name of your database
+  const walletsCollection = db.collection("wallets"); // Replace 'wallets' with the name of your wallets collection
+
+  const changeStream = walletsCollection.watch();
+
+  changeStream.on("change", async (next) => {
+    console.log("New wallet event:", next);
+
+    if (next.operationType === "insert") {
+      const newWalletData = next.fullDocument;
+      io.emit("newWallet", newWalletData);
+    }
+  });
+}
+
+
+
 async function run() {
   try {
     // Connect the client to the server (optional starting in v4.7)
@@ -321,6 +393,7 @@ async function run() {
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
+    
 
     // Connect Mongoose to the MongoDB client
     mongoose
@@ -330,6 +403,7 @@ async function run() {
       })
       .then(() => console.log("Mongoose connected"))
       .catch((err) => console.log("Error connecting Mongoose:", err));
+      watchWalletsCollection();
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
   } finally {
