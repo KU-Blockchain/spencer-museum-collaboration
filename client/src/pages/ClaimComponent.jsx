@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import claimNFTABI from "../ABI/ClaimNFT.json";
 import { saveClaimData, executeClaim, initiateFundTransfer, updateData, getTokenIdByAddress } from "../client-api";
 const API_URL = "http://localhost:5001";
 
@@ -69,7 +68,7 @@ const ClaimComponent = ({
 
 
         await executeClaim(tokenId, userAddress); // call the client-api.js function
-        
+
         hideLoading();
         await saveClaimData(userAddress, formattedDate); // save to database
         

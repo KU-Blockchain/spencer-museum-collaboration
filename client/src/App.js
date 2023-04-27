@@ -2,6 +2,7 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
+import DriftingCircles from './components/DriftingCircles';
 import Loading from "./components/Loading";
 import Timer from "./components/Timer";
 import About from "./pages/About";
@@ -134,7 +135,7 @@ const App = () => {
               showLoading={showLoading}
               hideLoading={hideLoading}
             />
-            <MovingCircles styles={appStyles} numcircles={data} />
+             <DriftingCircles styles={appStyles} numCircles={data} />
             <DataLogSidebar
               styles={appStyles}
               messages={consoleLogMessages}
@@ -212,19 +213,30 @@ const appStyles = {
     alignItems: "center",
     width: "100%",
   },
+  circleWrapper: {
+    position: 'relative',
+    width: '100%',
+    paddingTop: '75%', 
+    marginBottom: '10px',
+    overflow: 'hidden', 
+  },
   circleContainer: {
     display: "flex",
     justifyContent: "center",
     marginBottom: "10px",
+    height: "calc(50vh - 100px)", // Updated height
+    width: "90%",
+    position: "relative", // Add this line
+    overflow: "hidden", // Add this line
+    border: "1px solid black", // Add this line, for better visibility
   },
-  circle: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "50%",
+  
+  unclaimedCircle: {
     backgroundColor: "#F9C2FF",
-    margin: "0 10px",
-    outline: "2px solid #000000",
   },
+  claimedCircle: {
+  backgroundColor: "#BFEFFF",
+},
   rectangle: {
     width: "200px",
     height: "50px",

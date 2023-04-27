@@ -223,24 +223,6 @@ app.post("/claim", async (req, res) => {
     res.status(500).send(err);
   }
 });
-
-// PUT endpoint to update ActiveNFTs and ClaimCount
-app.put("/update", async (req, res) => {
-  /*
-  const { activeNFTCount, claimCount } = req.body;
-
-  try {
-    const updatedGlobalVars = await updateGlobalVars(
-      activeNFTCount,
-      claimCount
-    );
-    res.status(200).json(updatedGlobalVars);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating global vars", error });
-  }
-  */
-});
-
 // POST endpoint to reset the database
 app.post("/resetAll", async (req, res) => {
   try {
