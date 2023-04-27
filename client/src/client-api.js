@@ -175,12 +175,22 @@ export async function updateData() {
 
 // Function to reset the database
 export async function resetDatabase() {
-  const response = await fetch("http://localhost:5001/reset", {
+  const response = await fetch("http://localhost:5001/resetAll", {
     method: "POST",
   });
   const data = await response.json();
   return data;
 }
+
+export async function clearStoredClaims() {
+  const response = await fetch("http://localhost:5001/resetClaims", {
+    method: "POST",
+  });
+  const data = await response.json();
+  return data;
+}
+
+
 
 // Function to reset global variables
 export async function resetGlobalVars() {

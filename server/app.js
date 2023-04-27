@@ -229,7 +229,7 @@ app.put("/update", async (req, res) => {
 });
 
 // POST endpoint to reset the database
-app.post("/reset", async (req, res) => {
+app.post("/resetAll", async (req, res) => {
   try {
     // Remove all wallets
     const result = await Wallet.deleteMany({});
@@ -243,6 +243,20 @@ app.post("/reset", async (req, res) => {
     res.status(200).json({
       message: "Database reset successfully",
       deletedCount: result.deletedCount,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+});
+
+app.post("/resetClaims", async (req, res) => {
+  try {
+
+    // Remove all claims
+    const claimResult = await Claim.deleteMany({});
+
+    res.status(200).json({
+      message: "Claims reset successfully",
     });
   } catch (err) {
     res.status(500).json({ error: err });

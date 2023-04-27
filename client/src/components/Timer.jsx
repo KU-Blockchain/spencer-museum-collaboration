@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import socketIOClient from "socket.io-client";
-import { burnSpecificClaimNFTs } from "../client-api";
+import { burnSpecificClaimNFTs, clearStoredClaims } from "../client-api";
 
 const Timer = ({
   styles,
@@ -46,9 +46,12 @@ const Timer = ({
     if (claimsCount <= threshold) {
       const walletAddresses = claims.map((claim) => claim.walletAddress);
       await burnNFTs(walletAddresses);
+      
     } else {
-      console.log("Threshold amount exceeded");
+      console.log("Threshold amount exceeded. Fractionalization should occur.");
     }
+    clearStoredClaims();
+    console.log("claims cleared")
   });
 
   useEffect(() => {
