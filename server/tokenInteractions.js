@@ -21,6 +21,9 @@ const sendTransaction = async (transactionFunc, ...args) => {
       while (transactionQueue.length > 0) {
         const { transactionFunc, args, resolve, reject } = transactionQueue.shift();
         try {
+          // Update the nonce before processing the transaction
+          await getAndUpdateNonce();
+
           const result = await transactionFunc(...args);
           resolve(result);
         } catch (error) {
@@ -32,6 +35,7 @@ const sendTransaction = async (transactionFunc, ...args) => {
     }
   });
 };
+
 
 
 const claimNFTAddress = '0x61d5f829407a425806d896ae7277f558f83fedc9';

@@ -27,7 +27,7 @@ const {
   abi: fractionalOwnNFTABI,
   address: fractionalOwnNFTAddress,
 } = require("./ABI/FractionalOwnNFT.json");
-const { updateActiveWalletCount } = require("./api");
+const { updateActiveWalletCount, updateClaimedNFTCount, updateActiveNFTCount } = require("./api");
 const privateKey = process.env.PRIVATE_KEY;
 
 const { MongoClient } = require("mongodb");
@@ -78,6 +78,7 @@ app.post("/mintClaimNFT", async (req, res) => {
 
   try {
     const receipt = await mintClaimNFT(userAddress, tokenURI);
+    await updateActiveNFTCount(1);
     res.status(200).json(receipt);
   } catch (error) {
     console.error("Error in /mintClaimNFT:", error);
@@ -213,6 +214,7 @@ app.post("/claim", async (req, res) => {
   try {
     await claim.save();
     // Emit an event to all connected clients
+    await updateClaimedNFTCount(1);
     io.emit("claimInitiated", claim.timestamp);
     console.log("Claim data saved to database:", claim);
     res.status(201).json(claim);
@@ -224,8 +226,19 @@ app.post("/claim", async (req, res) => {
 
 // PUT endpoint to update ActiveNFTs and ClaimCount
 app.put("/update", async (req, res) => {
-  // Implement your logic for updating ActiveNFTs and ClaimCount
-  // You may need to create a separate schema and model for storing these values.
+  /*
+  const { activeNFTCount, claimCount } = req.body;
+
+  try {
+    const updatedGlobalVars = await updateGlobalVars(
+      activeNFTCount,
+      claimCount
+    );
+    res.status(200).json(updatedGlobalVars);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating global vars", error });
+  }
+  */
 });
 
 // POST endpoint to reset the database
@@ -236,13 +249,16 @@ app.post("/resetAll", async (req, res) => {
     // Remove all claims
     const claimResult = await Claim.deleteMany({});
 
-    await updateActiveWalletCount(-data.deletedCount);
+    await updateActiveWalletCount(-result.deletedCount);
+    await updateClaimedeWalletCount(-claimResult.deletedCount);
+ 
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
 
     res.status(200).json({
       message: "Database reset successfully",
-      deletedCount: result.deletedCount,
+      deletedWalletCount: result.deletedCount,
+      deletedClaimCount: claimResult.deletedCount,
     });
   } catch (err) {
     res.status(500).json({ error: err });
