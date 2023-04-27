@@ -3,7 +3,6 @@ import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
 import {
   createWallet,
-  updateData,
   resetGlobalVars,
   resetDatabase,
   mintClaimNFT, burnAllClaimNFTs
@@ -155,8 +154,6 @@ const GenerateComponent = ({
     hideLoading();
     await createWallet(walletData);
     console.log("Created wallet in database: " + wallet.address);
-    // Update ActiveNFTs and ClaimCount in the database
-    await updateData(1);
  
   };
 

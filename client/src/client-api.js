@@ -164,14 +164,7 @@ export const saveClaimData = async (walletAddress, timestamp) => {
   return data;
 };
 
-// Function to update ActiveNFTs and ClaimCount
-export async function updateData() {
-  const response = await fetch("http://localhost:5001/update", {
-    method: "PUT",
-  });
-  const data = await response.json();
-  return data;
-}
+
 
 // Function to reset the database
 export async function resetDatabase() {
