@@ -42,12 +42,20 @@ const DriftingCircles = () => {
     socket.on('walletStateChanged', (walletId, claimed) => {
       changeStyles(walletId, claimed);
     });
+    socket.on('walletDeleted', (walletId) => {
+        removeCircle(walletId);
+      });
 
 
     return () => {
       socket.disconnect();
     };
   }, []);
+
+  const removeCircle = (walletId) => {
+    const circle = document.getElementById(walletId);
+    containerRef.current.removeChild(circle);
+  };
 
   const generateCircle = (walletData) => {
     console.log("wallet data: ", walletData);
@@ -57,7 +65,7 @@ const DriftingCircles = () => {
     circle.style.height = '30px';
     circle.style.borderRadius = '50%';
     circle.style.border = '2px solid #000000';
-    circle.style.backgroundColor = walletData.color;// Set the circle's color based on the wallet data
+    circle.style.backgroundColor = walletData.claimed === true ? "#F9C2FF" : "#BFEFFF";// Set the circle's color based on the wallet data
     circle.style.position = 'absolute';
 
     const containerSize = 400;

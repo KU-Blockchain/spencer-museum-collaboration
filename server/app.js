@@ -257,6 +257,7 @@ app.post("/claim", async (req, res) => {
 // POST endpoint to reset the database
 app.post("/resetAll", async (req, res) => {
   try {
+    const wallets = await Wallet.find({});
     // Remove all wallets
     const result = await Wallet.deleteMany({});
     // Remove all claims
@@ -267,6 +268,9 @@ app.post("/resetAll", async (req, res) => {
  
     // Reset ActiveNFTs and ClaimCount
     // You may need to create a separate schema and model for storing these values.
+    wallets.forEach((wallet) => {
+      io.emit('walletDeleted', wallet.address);
+    });
 
     res.status(200).json({
       message: "Database reset successfully",
