@@ -2,6 +2,7 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
+import DriftingCircles from './components/DriftingCircles';
 import Loading from "./components/Loading";
 import Timer from "./components/Timer";
 import About from "./pages/About";
@@ -10,13 +11,13 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
-/*import io from "socket.io-client";
+import io from "socket.io-client";
 const socket = io("http://localhost:5001", {
   withCredentials: true,
   extraHeaders: {
     "my-custom-header": "abcd",
   },
-});*/
+});
 
 const App = () => {
   const [consoleLogMessages, setConsoleLogMessages] = useState([]);
@@ -113,19 +114,15 @@ const App = () => {
                 <Route
                   path="/claim"
                   element={
-                    web3 ? (
-                      <ClaimComponent
-                        styles={appStyles}
-                        logMessage={logMessage}
-                        web3={web3}
-                        contract={contract}
-                        account={account}
-                        showLoading={showLoading}
-                        hideLoading={hideLoading}
-                      />
-                    ) : (
-                      <p>Loading...</p>
-                    )
+                    <ClaimComponent
+                      styles={appStyles}
+                      logMessage={logMessage}
+                      web3={web3}
+                      contract={contract}
+                      account={account}
+                      showLoading={showLoading}
+                      hideLoading={hideLoading}
+                    />
                   }
                 />
               </Routes>
@@ -135,13 +132,10 @@ const App = () => {
             <Timer
               styles={appStyles}
               logMessage={logMessage}
-              web3={web3}
-              contract={contract}
-              account={account}
               showLoading={showLoading}
               hideLoading={hideLoading}
             />
-            <MovingCircles styles={appStyles} numcircles={data} />
+             <DriftingCircles styles={appStyles} numCircles={data} />
             <DataLogSidebar
               styles={appStyles}
               messages={consoleLogMessages}
@@ -219,19 +213,30 @@ const appStyles = {
     alignItems: "center",
     width: "100%",
   },
+  circleWrapper: {
+    position: 'relative',
+    width: '100%',
+    paddingTop: '75%', 
+    marginBottom: '10px',
+    overflow: 'hidden', 
+  },
   circleContainer: {
     display: "flex",
     justifyContent: "center",
     marginBottom: "10px",
+    height: "calc(50vh - 100px)", // Updated height
+    width: "90%",
+    position: "relative", // Add this line
+    overflow: "hidden", // Add this line
+    border: "1px solid black", // Add this line, for better visibility
   },
-  circle: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "50%",
+  
+  unclaimedCircle: {
     backgroundColor: "#F9C2FF",
-    margin: "0 10px",
-    outline: "2px solid #000000",
   },
+  claimedCircle: {
+  backgroundColor: "#BFEFFF",
+},
   rectangle: {
     width: "200px",
     height: "50px",
@@ -274,7 +279,7 @@ const appStyles = {
     fontFamily: "Courier New, monospace",
     outline: "2px solid #000000",
     lineHeight: "0.5",
-    padding: "0.5rem"
+    padding: "0.5rem",
   },
 };
 

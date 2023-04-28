@@ -3,9 +3,9 @@ import emailjs from "emailjs-com"; // Import emailjs
 import { ethers } from "ethers";
 import {
   createWallet,
-  updateData,
   resetGlobalVars,
   resetDatabase,
+  mintClaimNFT, burnAllClaimNFTs
 } from "../client-api"; // Assuming the functions are in a file named 'api.js'
 
 const GenerateComponent = ({
@@ -133,9 +133,9 @@ const GenerateComponent = ({
     showLoading("Minting NFT");
     const tokenURI = "https://example.com/tokenURI"; // Replace with your desired token URI
     showLoading("Transaction pending");
-    await sendTransaction(
-      contract.methods.mintClaimNFT(wallet.address, tokenURI)
-    );
+
+    await mintClaimNFT(wallet.address, tokenURI);
+
     logMessage("Successfully Minted NFT to " + wallet.address);
 
     // Add the new wallet to the wallets state
@@ -154,33 +154,15 @@ const GenerateComponent = ({
     hideLoading();
     await createWallet(walletData);
     console.log("Created wallet in database: " + wallet.address);
-    // Update ActiveNFTs and ClaimCount in the database
-    await updateData(1);
  
   };
 
-  const sendTransaction = async (transaction) => {
-    try {
-      const result = await transaction.send({ from: account });
-      console.log("Transaction successful:", result);
-      return result;
-    } catch (error) {
-      console.error("Transaction failed:", error.message);
-      hideLoading();
-      throw error;
-    }
-  };
-
   const reset = async () => {
-    if (!contract) {
-      console.log("Contract not found. Check MetaMask connection.");
-      return;
-    }
 
     try {
       // Burn all NFTs
       showLoading("Resetting");
-      await sendTransaction(contract.methods.BurnReset());
+      await burnAllClaimNFTs();
       console.log("All NFTs have been burned.");
       logMessage("All NFTs have been burned.");
     } catch (error) {

@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import socketIOClient from "socket.io-client";
+import { burnSpecificClaimNFTs, clearStoredClaims } from "../client-api";
 
 const Timer = ({
-  web3,
-  contract,
-  account,
   styles,
   logMessage,
   showLoading,
@@ -26,25 +24,20 @@ const Timer = ({
     }
   };
 
-  const burnNFTs = async (contract, walletAddresses) => {
-    /*if (!contract) {
-      console.log("Contract not found. Check MetaMask connection.");
-      return;
-    }*/
+  const burnNFTs = async (walletAddresses) => {
 
     try {
-      
-      await contract.methods
-        .burnSpecificNFTs(walletAddresses)
-     
-
+      showLoading("Destroying NFTs");
+      await burnSpecificClaimNFTs(walletAddresses);
       console.log("Specified NFTs have been burned.");
+      hideLoading();
     } catch (error) {
+      hideLoading();
       console.error("Error details:", error);
     }
   };
 // eslint-disable-next-line react-hooks/exhaustive-deps
-  const TimeEndingHandler = useCallback(async (contract) => {
+  const TimeEndingHandler = useCallback(async () => {
     const claims = await fetchClaims();
     const claimsCount = claims.length;
 
@@ -52,11 +45,13 @@ const Timer = ({
 
     if (claimsCount <= threshold) {
       const walletAddresses = claims.map((claim) => claim.walletAddress);
-      console.log("Contract prop value:", contract);
-      await burnNFTs(contract, walletAddresses);
+      await burnNFTs(walletAddresses);
+      
     } else {
-      console.log("Threshold amount exceeded");
+      console.log("Threshold amount exceeded. Fractionalization should occur.");
     }
+    clearStoredClaims();
+    console.log("claims cleared")
   });
 
   useEffect(() => {
@@ -72,7 +67,7 @@ const Timer = ({
         setTimeRemaining((prevTime) => {
           if (prevTime <= 1000) {
             clearInterval(newIntervalId);
-            TimeEndingHandler(contract);
+            TimeEndingHandler();
             return 0;
           }
           return prevTime - 1000;
@@ -84,7 +79,7 @@ const Timer = ({
     return () => {
       socket.disconnect();
     };
-  }, [TimeEndingHandler, contract, intervalId]);
+  }, [TimeEndingHandler, intervalId]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
