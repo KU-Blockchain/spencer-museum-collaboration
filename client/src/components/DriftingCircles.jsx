@@ -9,11 +9,6 @@ const DriftingCircles = () => {
   const mounted = useRef(false);
   let circleCount = 0;
 
-  const changeStyles = (walletId) => {
-    const circle = document.getElementById(walletId);
-    circle.style.backgroundColor = "#F9C2FF";
-  };
-
 
   useEffect(() => {
     console.log('DriftingCircles initialized');
@@ -52,11 +47,21 @@ const DriftingCircles = () => {
     };
   }, []);
 
-  const removeCircle = (walletId) => {
+  const changeStyles = (walletId) => {
     const circle = document.getElementById(walletId);
-    containerRef.current.removeChild(circle);
+    circle.style.backgroundColor = "#F9C2FF";
   };
 
+  const removeCircle = (walletId) => {
+    const circle = document.getElementById(walletId);
+    if (circle) {
+      containerRef.current.removeChild(circle);
+    } else {
+      console.warn(`Circle with walletId "${walletId}" not found`);
+    }
+  };
+  
+  
   const generateCircle = (walletData) => {
     console.log("wallet data: ", walletData);
     const circle = document.createElement('div');

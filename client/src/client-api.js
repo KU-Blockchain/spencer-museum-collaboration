@@ -58,8 +58,6 @@ export const getTokenIdByAddress = async (userAddress) => {
   }
 };
 
-
-
 export async function executeClaim(tokenId, userAddress) {
   try {
     const response = await fetch(`${API_URL}/executeClaim`, {
@@ -164,15 +162,18 @@ export const saveClaimData = async (walletAddress, timestamp) => {
   return data;
 };
 
-
-
 // Function to reset the database
 export async function resetDatabase() {
-  const response = await fetch("http://localhost:5001/resetAll", {
-    method: "POST",
-  });
-  const data = await response.json();
-  return data;
+  try {
+    const response = await fetch("http://localhost:5001/resetAll", {
+      method: "POST",
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error resetting database: ", error);
+    throw error;
+  }
 }
 
 export async function clearStoredClaims() {
@@ -184,14 +185,13 @@ export async function clearStoredClaims() {
 }
 export const getInitialWalletsWithCircleData = async () => {
   try {
-    const response = await fetch('http://localhost:5001/wallets/initial-data');
+    const response = await fetch("http://localhost:5001/wallets/initial-data");
     return await response.json();
   } catch (error) {
-    console.error('Error fetching initial wallet data:', error);
+    console.error("Error fetching initial wallet data:", error);
     throw error;
   }
 };
-
 
 // Function to reset global variables
 export async function resetGlobalVars() {

@@ -254,7 +254,6 @@ app.post("/claim", async (req, res) => {
     res.status(500).send(err);
   }
 });
-// POST endpoint to reset the database
 app.post("/resetAll", async (req, res) => {
   try {
     const wallets = await Wallet.find({});
@@ -264,12 +263,11 @@ app.post("/resetAll", async (req, res) => {
     const claimResult = await Claim.deleteMany({});
 
     await updateActiveWalletCount(-result.deletedCount);
-    await updateClaimedeWalletCount(-claimResult.deletedCount);
- 
-    // Reset ActiveNFTs and ClaimCount
-    // You may need to create a separate schema and model for storing these values.
+    await updateClaimedNFTCount(-claimResult.deletedCount);
+
     wallets.forEach((wallet) => {
-      io.emit('walletDeleted', wallet.address);
+      console.log("deleted wallet.address:", wallet.address);
+      io.emit('walletDeleted', wallet._id);
     });
 
     res.status(200).json({
@@ -278,9 +276,11 @@ app.post("/resetAll", async (req, res) => {
       deletedClaimCount: claimResult.deletedCount,
     });
   } catch (err) {
-    res.status(500).json({ error: err });
+    console.error("Error in /resetAll:", err); // Log the error message
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 app.post("/resetClaims", async (req, res) => {
   try {

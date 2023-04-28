@@ -36,25 +36,26 @@ async function getInitialWalletsWithCircleData() {
     return {
       _id: wallet._id,
       address: wallet.address,
-      claimed: false,
+      claimed: wallet.claimed,
     };
   });
 }
-/*
+
 async function getWalletsWithCircleData() {
   const wallets = await Wallet.find();
   return wallets.map((wallet) => {
     return {
       _id: wallet._id,
       address: wallet.address,
-      color: wallet.claimed === true ? "#F9C2FF" : "#BFEFFF",
+      claimed: wallet.claimed
     };
   });
 }
-*/
+
 module.exports = {
   updateActiveWalletCount,
   updateClaimedNFTCount,
   updateActiveNFTCount,
+  getWalletsWithCircleData,
   getInitialWalletsWithCircleData
 };
