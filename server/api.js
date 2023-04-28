@@ -36,7 +36,7 @@ async function getInitialWalletsWithCircleData() {
     return {
       _id: wallet._id,
       address: wallet.address,
-      color: wallet.claimed === "claimed" ? "#F9C2FF" : "#BFEFFF",
+      color: wallet.claimed === true ? "#F9C2FF" : "#BFEFFF",
     };
   });
 }
@@ -47,7 +47,7 @@ async function getWalletsWithCircleData() {
     return {
       _id: wallet._id,
       address: wallet.address,
-      color: wallet.claimed === "claimed" ? "#F9C2FF" : "#BFEFFF",
+      color: wallet.claimed === true ? "#F9C2FF" : "#BFEFFF",
     };
   });
 }

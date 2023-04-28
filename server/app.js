@@ -150,8 +150,9 @@ app.post("/executeClaim", async (req, res) => {
   const { tokenId, userAddress } = req.body;
 
   try {
-    const receipt = await executeClaim(tokenId, userAddress);
+    const receipt = await executeClaim(tokenId, userAddress, io);
     res.status(200).json(receipt);
+    
   } catch (error) {
     console.error("Error in /executeClaim:", error);
     res.status(500).json({ error: error.message });
@@ -215,7 +216,7 @@ app.get('/wallets', async (req, res) => {
 });
 
 
-// POST endpoint to create a new wallet
+// POST endpoint to a new wallet
 app.post("/wallets", async (req, res) => {
   console.log("Received POST request to /wallets"); // Add this console log
   const walletData = req.body;

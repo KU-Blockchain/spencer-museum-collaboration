@@ -3,6 +3,8 @@ const privateKey = process.env.PRIVATE_KEY;
 const web3 = new Web3('https://polygon-mumbai.g.alchemy.com/v2/OXZS1fOB3e1mTBT0o8_1W3T1FA6rIFTW'); // Polygon Mumbai RPC URL
 const wallet = web3.eth.accounts.privateKeyToAccount(privateKey);
 let currentNonce = null;
+const Wallet = require('./models/wallet');
+
 
 const transactionQueue = [];
 let isProcessingQueue = false;
@@ -212,7 +214,7 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
   
   
 
-  const executeClaim = async (tokenId, userAddress) => {
+  const executeClaim = async (tokenId, userAddress, io) => {
     try {
       const gasPrice = await web3.eth.getGasPrice();
       const nonce = await getAndUpdateNonce();
@@ -237,6 +239,16 @@ const mintClaimNFT = async (userAddress, tokenURI) => {
         web3.eth.sendSignedTransaction,
         signedTransaction.rawTransaction
       );
+      const updatedWallet = await Wallet.findOneAndUpdate(
+        { address: userAddress },
+        { claimed: true }
+      );
+  
+      // Emit the walletStateChanged event
+      if (updatedWallet) {
+        io.emit('walletStateChanged', updatedWallet._id, updatedWallet.claimed);
+      }
+  
       return receipt;
     } catch (error) {
       console.error("Error in executeClaim:", error);

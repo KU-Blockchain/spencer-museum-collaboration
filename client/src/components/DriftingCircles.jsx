@@ -6,11 +6,22 @@ import { getInitialWalletsWithCircleData } from '../client-api';
 const DriftingCircles = () => {
   const containerRef = useRef(null);
   const [wallets, setWallets] = useState([]);
+  const mounted = useRef(false);
   let circleCount = 0;
+
+  const changeStyles = (walletId) => {
+    const circle = document.getElementById(walletId);
+    circle.style.backgroundColor = "#F9C2FF";
+  };
+
 
   useEffect(() => {
     console.log('DriftingCircles initialized');
     const fetchInitialCircles = async () => {
+      if (mounted.current) return; // Skip if the component has already been mounted
+
+      mounted.current = true; // Set the mounted flag to true
+
       const initialData = await getInitialWalletsWithCircleData();
       console.log('Initial Data:', initialData);
       setWallets(initialData);
@@ -28,6 +39,10 @@ const DriftingCircles = () => {
     socket.on('newWallet', (newWalletData) => {
       generateCircle(newWalletData);
     });
+    socket.on('walletStateChanged', (walletId, claimed) => {
+      changeStyles(walletId, claimed);
+    });
+
 
     return () => {
       socket.disconnect();
@@ -35,13 +50,14 @@ const DriftingCircles = () => {
   }, []);
 
   const generateCircle = (walletData) => {
+    console.log("wallet data: ", walletData);
     const circle = document.createElement('div');
     circle.id = walletData._id; // Set the circle's ID to the wallet ID
     circle.style.width = '30px';
     circle.style.height = '30px';
     circle.style.borderRadius = '50%';
     circle.style.border = '2px solid #000000';
-    circle.style.backgroundColor = walletData.color; // Set the circle's color based on the wallet data
+    circle.style.backgroundColor = walletData.color;// Set the circle's color based on the wallet data
     circle.style.position = 'absolute';
 
     const containerSize = 400;
@@ -84,7 +100,7 @@ const DriftingCircles = () => {
           overflow: 'hidden',
           //border: '1px solid black',
           background: 'white',
-          marginBottom: '10px',
+          marginBottom: '10vh',
         }}
       ></div>
     </div>
