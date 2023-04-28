@@ -28,7 +28,7 @@ const {
   abi: fractionalOwnNFTABI,
   address: fractionalOwnNFTAddress,
 } = require("./ABI/FractionalOwnNFT.json");
-const { updateActiveWalletCount, updateClaimedNFTCount, updateActiveNFTCount } = require("./api");
+const { updateActiveWalletCount, updateClaimedNFTCount, updateActiveNFTCount, getWalletsWithCircleData, getInitialWalletsWithCircleData } = require("./api");
 const privateKey = process.env.PRIVATE_KEY;
 
 const { MongoClient } = require("mongodb");
@@ -337,17 +337,15 @@ app.patch("/globalVars/incrementActiveWalletCount", async (req, res) => {
       .send("Error incrementing ActiveWalletCount: " + error.message);
   }
 });
+app.get('/wallets/initial-data', async (req, res) => {
+  try {
+    const initialData = await getInitialWalletsWithCircleData();
+    res.status(200).json(initialData);
+  } catch (error) {
+    res.status(500).json({ error: 'Error getting initial wallet data' });
+  }
+});
 
-async function getWalletsWithCircleData() {
-  const wallets = await Wallet.find();
-  return wallets.map((wallet) => {
-    return {
-      _id: wallet._id,
-      address: wallet.address,
-      color: wallet.claimed === "claimed" ? "pink" : "red",
-    };
-  });
-}
 
 io.on('connection', (socket) => {
   console.log('New client connected');

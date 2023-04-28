@@ -182,7 +182,15 @@ export async function clearStoredClaims() {
   const data = await response.json();
   return data;
 }
-
+export const getInitialWalletsWithCircleData = async () => {
+  try {
+    const response = await fetch('http://localhost:5001/wallets/initial-data');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching initial wallet data:', error);
+    throw error;
+  }
+};
 
 
 // Function to reset global variables

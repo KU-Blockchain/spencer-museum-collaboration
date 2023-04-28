@@ -1,5 +1,5 @@
 const GlobalVars = require('./models/globalVars');// eslint-disable-line no-undef
-// Function to update ActiveWalletCount
+const Wallet = require('./models/wallet');// Function to update ActiveWalletCount
 async function updateActiveWalletCount(delta) {
   try {
     const globalVars = await GlobalVars.findOne();
@@ -30,8 +30,32 @@ async function updateActiveNFTCount(delta) {
   }
 }
 
+async function getInitialWalletsWithCircleData() {
+  const wallets = await Wallet.find();
+  return wallets.map((wallet) => {
+    return {
+      _id: wallet._id,
+      address: wallet.address,
+      color: wallet.claimed === "claimed" ? "#F9C2FF" : "#BFEFFF",
+    };
+  });
+}
+
+async function getWalletsWithCircleData() {
+  const wallets = await Wallet.find();
+  return wallets.map((wallet) => {
+    return {
+      _id: wallet._id,
+      address: wallet.address,
+      color: wallet.claimed === "claimed" ? "#F9C2FF" : "#BFEFFF",
+    };
+  });
+}
+
 module.exports = {
   updateActiveWalletCount,
   updateClaimedNFTCount,
-  updateActiveNFTCount
+  updateActiveNFTCount,
+  getInitialWalletsWithCircleData,
+  getWalletsWithCircleData,
 };
