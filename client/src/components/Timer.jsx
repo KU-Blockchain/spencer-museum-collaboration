@@ -46,9 +46,15 @@ const Timer = ({
     if (claimsCount <= threshold) {
       const walletAddresses = claims.map((claim) => claim.walletAddress);
       await burnNFTs(walletAddresses);
+      logMessage("There were "+ claimsCount + " claims.");
+      logMessage("The threshold amount was " + threshold + ".");
+      logMessage("All wallets which have attempted to claim will now have their NFTs burned.");
       
     } else {
       console.log("Threshold amount exceeded. Fractionalization should occur.");
+      logMessage("There were "+ claimsCount + " claims.");
+      logMessage("The threshold amount was " + threshold + ".");
+      logMessage("Fractionalization should occur.");
     }
     clearStoredClaims();
     console.log("claims cleared")

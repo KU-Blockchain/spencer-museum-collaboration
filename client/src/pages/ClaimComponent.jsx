@@ -72,13 +72,14 @@ const ClaimComponent = ({
         hideLoading();
         await saveClaimData(userAddress, formattedDate); // save to database
         
-        logMessage("Claim initiated");
+        logMessage("Executing claim...");
         setNftDetected(false);
         claimSuccessful = true;
+        logMessage("Claim successful. The window has opened for other wallets to claim.");
       } catch (error) {
         if (error.message.includes("insufficient funds")) {
-          logMessage("Error: Insufficient funds, transferring more...");
-          setErrorMessage("Error: Insufficient funds, transferring more...");
+          logMessage("Transferring matic to fund gas fees...");
+          setErrorMessage("Insufficient funds, transferring more...");
           try {
             await transferFunds(tokenId);
             await handleClaim(tokenId); // Retry the claim after transferring funds

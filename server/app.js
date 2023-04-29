@@ -284,17 +284,35 @@ app.post("/resetAll", async (req, res) => {
 
 app.post("/resetClaims", async (req, res) => {
   try {
+    // Find all claims
+    const claims = await Claim.find({});
+
+    // Get all wallet addresses from claims
+    const walletAddresses = claims.map((claim) => claim.walletAddress);
+
+    // Find wallets with addresses from claims
+    const wallets = await Wallet.find({ address: { $in: walletAddresses } });
 
     // Remove all claims
     const claimResult = await Claim.deleteMany({});
 
+    await updateClaimedNFTCount(-claimResult.deletedCount);
+
+    wallets.forEach((wallet) => {
+      console.log("deleted wallet.address:", wallet.address);
+      io.emit('walletDeleted', wallet._id);
+    });
+
     res.status(200).json({
       message: "Claims reset successfully",
+      deletedClaimCount: claimResult.deletedCount
     });
   } catch (err) {
+    console.error("Error in /resetClaims:", err); 
     res.status(500).json({ error: err });
   }
 });
+
 
 const GlobalVars = require("./models/globalVars"); // Import the GlobalStats model
 
