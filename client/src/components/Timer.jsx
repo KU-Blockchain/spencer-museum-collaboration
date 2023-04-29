@@ -62,12 +62,18 @@ const Timer = ({
 
   useEffect(() => {
     const socket = socketIOClient("http://localhost:5001");
-
+  
     socket.on("claimInitiated", (timestamp) => {
+      // Check if timeRemaining is already set
+      if (timeRemaining !== null) {
+        console.log("Timer already exists. Skipping new timer.");
+        return;
+      }
+  
       if (intervalId) {
         clearInterval(intervalId);
       }
-      //setTimeRemaining(120 * 1000);
+  
       setTimeRemaining(30 * 1000);
       const newIntervalId = setInterval(() => {
         setTimeRemaining((prevTime) => {
@@ -81,11 +87,12 @@ const Timer = ({
       }, 1000);
       setIntervalId(newIntervalId);
     });
-
+  
     return () => {
       socket.disconnect();
     };
-  }, [TimeEndingHandler, intervalId]);
+  }, [TimeEndingHandler, intervalId, timeRemaining]);
+  
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
