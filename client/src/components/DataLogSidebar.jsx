@@ -125,10 +125,7 @@ const DataLogSidebar = ({ web3, contract, account, styles, messages }) => {
         }}
       >
         <p>
-          <strong>Active NFT Count: {globalVars.ActiveNFTCount}</strong>
-        </p>
-        <p>
-          <strong>Active Wallet Count: {globalVars.ActiveWalletCount}</strong>
+          <strong>Active Wallets with NFTs: {globalVars.ActiveWalletCount}</strong>
         </p>
         <p>
           <strong>Claimed NFT Count: {globalVars.ClaimedNFTCount}</strong>

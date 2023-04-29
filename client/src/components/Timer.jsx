@@ -37,32 +37,45 @@ const Timer = ({
     }
   };
 // eslint-disable-next-line react-hooks/exhaustive-deps
-  const TimeEndingHandler = useCallback(async () => {
-    const claims = await fetchClaims();
-    const claimsCount = claims.length;
+const TimeEndingHandler = useCallback(async () => {
+  const claims = await fetchClaims();
+  const claimsCount = claims.length;
 
-    const threshold = 6;
+  const threshold = 2;
 
-    if (claimsCount <= threshold) {
-      const walletAddresses = claims.map((claim) => claim.walletAddress);
-      await burnNFTs(walletAddresses);
-      
-    } else {
-      console.log("Threshold amount exceeded. Fractionalization should occur.");
-    }
-    clearStoredClaims();
-    console.log("claims cleared")
-  });
+  if (claimsCount < threshold) {
+    const walletAddresses = claims.map((claim) => claim.walletAddress);
+    await burnNFTs(walletAddresses);
+    logMessage("There were " + claimsCount + " claims.");
+    logMessage("The threshold amount was " + threshold + ".");
+    logMessage("All wallets which have attempted to claim will now have their NFTs burned.");
+  } else {
+    console.log("Threshold amount exceeded. Fractionalization should occur.");
+    logMessage("There were " + claimsCount + " claims.");
+    logMessage("The threshold amount was " + threshold + ".");
+    logMessage("Fractionalization should occur.");
+  }
+  clearStoredClaims();
+  console.log("claims cleared");
+  setTimeRemaining(null); // Reset timeRemaining to null after TimeEndingHandler has been executed
+}, []);
+
 
   useEffect(() => {
     const socket = socketIOClient("http://localhost:5001");
-
+  
     socket.on("claimInitiated", (timestamp) => {
+      // Check if timeRemaining is already set
+      if (timeRemaining !== null) {
+        console.log("Timer already exists. Skipping new timer.");
+        return;
+      }
+  
       if (intervalId) {
         clearInterval(intervalId);
       }
-      //setTimeRemaining(120 * 1000);
-      setTimeRemaining(30 * 1000);
+  
+      setTimeRemaining(45 * 1000); //45 seconds
       const newIntervalId = setInterval(() => {
         setTimeRemaining((prevTime) => {
           if (prevTime <= 1000) {
@@ -75,11 +88,12 @@ const Timer = ({
       }, 1000);
       setIntervalId(newIntervalId);
     });
-
+  
     return () => {
       socket.disconnect();
     };
-  }, [TimeEndingHandler, intervalId]);
+  }, [TimeEndingHandler, intervalId, timeRemaining]);
+  
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
