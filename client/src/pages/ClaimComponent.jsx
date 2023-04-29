@@ -75,7 +75,7 @@ const ClaimComponent = ({
         logMessage("Executing claim...");
         setNftDetected(false);
         claimSuccessful = true;
-        logMessage("Claim successful. The window has opened for other wallets to claim.");
+        logMessage("Claim successful. The window is open for other wallets to claim.");
       } catch (error) {
         if (error.message.includes("insufficient funds")) {
           logMessage("Transferring matic to fund gas fees...");
