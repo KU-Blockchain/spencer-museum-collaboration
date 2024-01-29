@@ -12,7 +12,7 @@ const {
   burnSpecificClaimNFTs,
   executeClaim,
   handleFundTransfer,
-  getTokenIdByAddress
+  getTokenIdByAddress,
 } = require("./tokenInteractions");
 
 const PORT = process.env.PORT || 5001;
@@ -28,7 +28,13 @@ const {
   abi: fractionalOwnNFTABI,
   address: fractionalOwnNFTAddress,
 } = require("./ABI/FractionalOwnNFT.json");
-const { updateActiveWalletCount, updateClaimedNFTCount, updateActiveNFTCount, getWalletsWithCircleData, getInitialWalletsWithCircleData } = require("./api");
+const {
+  updateActiveWalletCount,
+  updateClaimedNFTCount,
+  updateActiveNFTCount,
+  getWalletsWithCircleData,
+  getInitialWalletsWithCircleData,
+} = require("./api");
 const privateKey = process.env.PRIVATE_KEY;
 
 const { MongoClient } = require("mongodb");
@@ -39,9 +45,7 @@ const Claim = require("./models/claim");
 
 // Replace <password> with your actual password
 //const uri = `mongodb+srv://enasseri02:${dbPassword}@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority`;
-const uri =
-  "mongodb+srv://enasseri02:IGpL1fmUGgS6YFhp@cluster0.uxmku1l.mongodb.net/myDatabase?retryWrites=true&w=majority";
-
+const uri = process.env.MONGODB_URI;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -109,8 +113,6 @@ app.post("/get-token-id", async (req, res) => {
   }
 });
 
-
-
 app.post("/burnAllClaimNFTs", async (req, res) => {
   try {
     const receipt = await burnAllClaimNFTs();
@@ -152,7 +154,6 @@ app.post("/executeClaim", async (req, res) => {
   try {
     const receipt = await executeClaim(tokenId, userAddress, io);
     res.status(200).json(receipt);
-    
   } catch (error) {
     console.error("Error in /executeClaim:", error);
     res.status(500).json({ error: error.message });
@@ -205,8 +206,7 @@ app.use((req, res, next) => {
   next();
 });
 
-
-app.get('/wallets', async (req, res) => {
+app.get("/wallets", async (req, res) => {
   try {
     const wallets = await Wallet.find();
     res.json(wallets);
@@ -214,7 +214,6 @@ app.get('/wallets', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 // POST endpoint to a new wallet
 app.post("/wallets", async (req, res) => {
@@ -266,10 +265,9 @@ app.post("/resetAll", async (req, res) => {
     await updateActiveNFTCount(-result.deletedCount);
     await updateClaimedNFTCount(-claimResult.deletedCount);
 
-
     wallets.forEach((wallet) => {
       console.log("deleted wallet.address:", wallet.address);
-      io.emit('walletDeleted', wallet._id);
+      io.emit("walletDeleted", wallet._id);
     });
 
     res.status(200).json({
@@ -282,7 +280,6 @@ app.post("/resetAll", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 app.post("/resetClaims", async (req, res) => {
   try {
@@ -302,7 +299,7 @@ app.post("/resetClaims", async (req, res) => {
 
     wallets.forEach((wallet) => {
       console.log("deleted wallet.address:", wallet.address);
-      io.emit('walletDeleted', wallet._id);
+      io.emit("walletDeleted", wallet._id);
     });
 
     // Find wallets with claimed = true
@@ -315,21 +312,19 @@ app.post("/resetClaims", async (req, res) => {
     await updateActiveNFTCount(-walletResult.deletedCount);
     claimedWallets.forEach((wallet) => {
       console.log("deleted claimed wallet.address:", wallet.address);
-      io.emit('walletDeleted', wallet._id);
+      io.emit("walletDeleted", wallet._id);
     });
 
     res.status(200).json({
       message: "Claims reset successfully",
       deletedClaimCount: claimResult.deletedCount,
-      deletedClaimedWalletCount: walletResult.deletedCount
+      deletedClaimedWalletCount: walletResult.deletedCount,
     });
   } catch (err) {
-    console.error("Error in /resetClaims:", err); 
+    console.error("Error in /resetClaims:", err);
     res.status(500).json({ error: err });
   }
 });
-
-
 
 const GlobalVars = require("./models/globalVars"); // Import the GlobalStats model
 
@@ -377,26 +372,25 @@ app.patch("/globalVars/incrementActiveWalletCount", async (req, res) => {
       .send("Error incrementing ActiveWalletCount: " + error.message);
   }
 });
-app.get('/wallets/initial-data', async (req, res) => {
+app.get("/wallets/initial-data", async (req, res) => {
   try {
     const initialData = await getInitialWalletsWithCircleData();
     res.status(200).json(initialData);
   } catch (error) {
-    res.status(500).json({ error: 'Error getting initial wallet data' });
+    res.status(500).json({ error: "Error getting initial wallet data" });
   }
 });
 
-
-io.on('connection', (socket) => {
-  console.log('New client connected');
+io.on("connection", (socket) => {
+  console.log("New client connected");
 
   // Listen for a new wallet event from your database
   // You can use MongoDB Change Streams to watch for changes in your collection
   // When a new wallet is added, emit a 'newWallet' event to the client
   // For example: socket.emit('newWallet', newWalletData);
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
   });
 });
 
@@ -416,8 +410,6 @@ async function watchWalletsCollection() {
   });
 }
 
-
-
 async function run() {
   try {
     // Connect the client to the server (optional starting in v4.7)
@@ -431,7 +423,6 @@ async function run() {
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-    
 
     // Connect Mongoose to the MongoDB client
     mongoose
@@ -441,7 +432,7 @@ async function run() {
       })
       .then(() => console.log("Mongoose connected"))
       .catch((err) => console.log("Error connecting Mongoose:", err));
-      watchWalletsCollection();
+    watchWalletsCollection();
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
   } finally {
