@@ -59,7 +59,10 @@ const client = new MongoClient(uri, {
 
 //app.use(cors());
 const corsOptions = {
-  origin: "http://localhost:3000", // Or the URL of your client-side app
+  origin: [
+    "https://spencer-museum-collaboration.vercel.app",
+    "http://localhost:3000",
+  ], // Add your production URL and keep localhost for development
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: ["Content-Type", "Authorization", "my-custom-header"],
   credentials: true,
