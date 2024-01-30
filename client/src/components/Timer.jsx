@@ -70,7 +70,7 @@ const Timer = ({ styles, logMessage, showLoading, hideLoading }) => {
         clearInterval(intervalId);
       }
 
-      setTimeRemaining(45 * 1000); //45 seconds
+      setTimeRemaining(75 * 1000); //75 seconds
       const newIntervalId = setInterval(() => {
         setTimeRemaining((prevTime) => {
           if (prevTime <= 1000) {
