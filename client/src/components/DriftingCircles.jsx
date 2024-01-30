@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import io from "socket.io-client";
 import anime from "animejs";
 import { getInitialWalletsWithCircleData } from "../client-api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const DriftingCircles = () => {
   const containerRef = useRef(null);
@@ -28,7 +29,7 @@ const DriftingCircles = () => {
 
     fetchInitialCircles();
 
-    const socket = io("http://localhost:5001");
+    const socket = io(API_URL);
 
     socket.on("newWallet", (newWalletData) => {
       generateCircle(newWalletData);

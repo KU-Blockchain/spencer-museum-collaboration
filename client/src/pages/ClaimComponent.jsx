@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { saveClaimData, executeClaim, initiateFundTransfer, updateData, getTokenIdByAddress } from "../client-api";
-const API_URL = "http://localhost:5001";
+import {
+  saveClaimData,
+  executeClaim,
+  initiateFundTransfer,
+  updateData,
+  getTokenIdByAddress,
+} from "../client-api";
+const API_URL = process.env.REACT_APP_API_URL;
 
-
-const ClaimComponent = ({
-  styles,
-  logMessage,
-  showLoading,
-  hideLoading,
-}) => {
+const ClaimComponent = ({ styles, logMessage, showLoading, hideLoading }) => {
   const [userAddress, setUserAddress] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");
   const [nftDetected, setNftDetected] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
- 
+
   useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => {
@@ -54,7 +54,6 @@ const ClaimComponent = ({
     }*/
   };
 
-
   const handleClaim = async (tokenId) => {
     showLoading("Claiming NFT");
     let claimSuccessful = false;
@@ -66,16 +65,17 @@ const ClaimComponent = ({
         const timestamp = new Date(date);
         const formattedDate = timestamp.toISOString().slice(0, -5) + "Z";
 
-
         await executeClaim(tokenId, userAddress); // call the client-api.js function
 
         hideLoading();
         await saveClaimData(userAddress, formattedDate); // save to database
-        
+
         logMessage("Executing claim...");
         setNftDetected(false);
         claimSuccessful = true;
-        logMessage("Claim successful. The window is open for other wallets to claim.");
+        logMessage(
+          "Claim successful. The window is open for other wallets to claim."
+        );
       } catch (error) {
         if (error.message.includes("insufficient funds")) {
           logMessage("Transferring matic to fund gas fees...");
@@ -109,16 +109,15 @@ const ClaimComponent = ({
       throw new Error("Error transferring funds: " + error.message);
     }
   };
-  
 
   const handleClaimProcess = async () => {
     showLoading("Initiating claim");
     logMessage("Claim Initiated...");
-  
+
     try {
       const tokenId = await getTokenIdByAddress(userAddress);
       console.log("tokenId: " + tokenId);
-  
+
       await handleClaim(tokenId);
     } catch (error) {
       setErrorMessage(error.message);
@@ -126,7 +125,6 @@ const ClaimComponent = ({
       hideLoading();
     }
   };
-  
 
   return (
     <div style={styles.section}>
