@@ -10,7 +10,7 @@ const Timer = ({ styles, logMessage, showLoading, hideLoading }) => {
 
   const fetchClaims = async () => {
     try {
-      const response = await fetch(`{API_URL}/claims`);
+      const response = await fetch(`${API_URL}/claims`);
       const data = await response.json();
       return data;
     } catch (error) {
