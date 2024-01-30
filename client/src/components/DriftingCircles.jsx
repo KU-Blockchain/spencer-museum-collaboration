@@ -32,13 +32,19 @@ const DriftingCircles = () => {
     const socket = io(API_URL);
 
     socket.on("newWallet", (newWalletData) => {
+      console.log("Connected to the server");
       generateCircle(newWalletData);
     });
     socket.on("walletStateChanged", (walletId, claimed) => {
+      console.log("Connected to the server");
       changeStyles(walletId, claimed);
     });
     socket.on("walletDeleted", (walletId) => {
+      console.log("Connected to the server");
       removeCircle(walletId);
+    });
+    socket.on("connect_error", (error) => {
+      console.error("Connection failed", error);
     });
 
     return () => {
