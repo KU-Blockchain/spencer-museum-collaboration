@@ -2,7 +2,7 @@ import ClaimComponent from "./pages/ClaimComponent";
 import MovingCircles from "./components/MovingCircles";
 import DataLogSidebar from "./components/DataLogSidebar";
 import GenerateComponent from "./pages/GenerateComponent";
-import DriftingCircles from './components/DriftingCircles';
+import DriftingCircles from "./components/DriftingCircles";
 import Loading from "./components/Loading";
 import Timer from "./components/Timer";
 import About from "./pages/About";
@@ -12,7 +12,7 @@ import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Web3 from "web3";
 import ClaimNFTABI from "./ABI/ClaimNFT.json";
 import io from "socket.io-client";
-const socket = io("http://localhost:5001", {
+const socket = io(process.env.REACT_APP_API_URL, {
   withCredentials: true,
   extraHeaders: {
     "my-custom-header": "abcd",
@@ -135,7 +135,7 @@ const App = () => {
               showLoading={showLoading}
               hideLoading={hideLoading}
             />
-             <DriftingCircles styles={appStyles} numCircles={data} />
+            <DriftingCircles styles={appStyles} numCircles={data} />
             <DataLogSidebar
               styles={appStyles}
               messages={consoleLogMessages}
@@ -214,11 +214,11 @@ const appStyles = {
     width: "100%",
   },
   circleWrapper: {
-    position: 'relative',
-    width: '100%',
-    paddingTop: '75%', 
-    marginBottom: '10px',
-    overflow: 'hidden', 
+    position: "relative",
+    width: "100%",
+    paddingTop: "75%",
+    marginBottom: "10px",
+    overflow: "hidden",
   },
   circleContainer: {
     display: "flex",
@@ -230,13 +230,13 @@ const appStyles = {
     overflow: "hidden", // Add this line
     border: "1px solid black", // Add this line, for better visibility
   },
-  
+
   unclaimedCircle: {
     backgroundColor: "#F9C2FF",
   },
   claimedCircle: {
-  backgroundColor: "#BFEFFF",
-},
+    backgroundColor: "#BFEFFF",
+  },
   rectangle: {
     width: "200px",
     height: "50px",
