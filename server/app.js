@@ -141,6 +141,10 @@ app.post("/burnSpecificClaimNFTs", async (req, res) => {
   }
 });
 
+app.use("/claims", (req, res, next) => {
+  console.log("Claims route hit");
+  next();
+});
 // Add this route below the existing routes
 app.get("/claims", async (req, res) => {
   try {
