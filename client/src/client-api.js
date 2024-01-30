@@ -165,7 +165,7 @@ export const saveClaimData = async (walletAddress, timestamp) => {
 // Function to reset the database
 export async function resetDatabase() {
   try {
-    const response = await fetch("http://localhost:5001/resetAll", {
+    const response = await fetch(`${API_URL}/resetAll`, {
       method: "POST",
     });
     const data = await response.json();
@@ -177,7 +177,7 @@ export async function resetDatabase() {
 }
 
 export async function clearStoredClaims() {
-  const response = await fetch("http://localhost:5001/resetClaims", {
+  const response = await fetch(`${API_URL}/resetClaims`, {
     method: "POST",
   });
   const data = await response.json();
@@ -185,7 +185,7 @@ export async function clearStoredClaims() {
 }
 export const getInitialWalletsWithCircleData = async () => {
   try {
-    const response = await fetch("http://localhost:5001/wallets/initial-data");
+    const response = await fetch(`${API_URL}/wallets/initial-data`);
     return await response.json();
   } catch (error) {
     console.error("Error fetching initial wallet data:", error);
@@ -195,7 +195,7 @@ export const getInitialWalletsWithCircleData = async () => {
 
 // Function to reset global variables
 export async function resetGlobalVars() {
-  const response = await fetch("http://localhost:5001/globalVars", {
+  const response = await fetch(`${API_URL}/globalVars`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -242,7 +242,7 @@ export async function updateActiveTokenCountInDatabase(activeTokenCount) {
 }
 
 export async function updateGlobalVars(globalVars) {
-  const response = await fetch("http://localhost:5001/globalVars", {
+  const response = await fetch(`${API_URL}/globalVars`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(globalVars),
